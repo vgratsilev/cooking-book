@@ -4,12 +4,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { siteConfig } from "@/config/site.config";
-import type {
-    AuthMode,
-    AuthSubmitResult,
-    LoginValues,
-    RegistrationValues,
-} from "@/features/auth/model/auth.types";
+import { registerUser } from "@/features/auth/api/register.action";
+import type { AuthMode, AuthSubmitResult, LoginValues } from "@/features/auth/model/auth.types";
 import { AuthModal } from "@/features/auth/ui/AuthModal";
 import { HeaderActions } from "./HeaderActions";
 import { HeaderNavigation } from "./HeaderNavigation";
@@ -116,7 +112,7 @@ export const Header = () => {
                 onLoginSubmit={notConfiguredSubmit<LoginValues>}
                 onModeChange={setAuthMode}
                 onOpenChange={handleAuthModalOpenChange}
-                onRegistrationSubmit={notConfiguredSubmit<RegistrationValues>}
+                onRegistrationSubmit={registerUser}
             />
         </nav>
     );
