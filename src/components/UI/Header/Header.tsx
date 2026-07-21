@@ -1,10 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { Link, Button } from "@heroui/react";
 import Image from "next/image";
-import { siteConfig } from "@/config/site.config";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { siteConfig } from "@/config/site.config";
+import type {
+    AuthMode,
+    AuthSubmitResult,
+    LoginValues,
+    RegistrationValues,
+} from "@/features/auth/model/auth.types";
+import { AuthModal } from "@/features/auth/ui/AuthModal";
+import { HeaderActions } from "./HeaderActions";
+import { HeaderNavigation } from "./HeaderNavigation";
+
+const notConfiguredSubmit = async <TValues extends Record<string, string>>(
+    values: TValues,
+): Promise<AuthSubmitResult<keyof TValues & string>> => {
+    void values;
+    return {
+        status: "error",
+        formError: "Authentication is not configured yet.",
+    };
+};
 
 const Logo = () => {
     return (
@@ -20,23 +38,18 @@ const Logo = () => {
 
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+    const [authMode, setAuthMode] = useState<AuthMode | null>(null);
     const pathname = usePathname();
 
-    const getNavItems = () => {
-        return siteConfig.navItems.map((navItem) => {
-            const isActive = pathname === navItem.href;
-            return (
-                <li key={navItem.href}>
-                    <Link
-                        href={navItem.href}
-                        className={`py-1 ${isActive ? "text-red-500" : "text-foreground hover:text-red-300"} transition-[color] duration-200`}
-                    >
-                        {navItem.label}
-                    </Link>
-                </li>
-            );
-        });
+    const openAuthModal = (mode: AuthMode) => {
+        setIsMenuOpen(false);
+        setAuthMode(mode);
+    };
+
+    const handleAuthModalOpenChange = (isOpen: boolean) => {
+        if (!isOpen) {
+            setAuthMode(null);
+        }
     };
 
     return (
@@ -44,10 +57,11 @@ export const Header = () => {
             <header className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
                 <div className="flex items-center gap-4">
                     <button
-                        className="md:hidden"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        aria-label="Toggle menu"
                         aria-expanded={isMenuOpen}
+                        aria-label="Toggle menu"
+                        className="cursor-pointer md:hidden"
+                        onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+                        type="button"
                     >
                         <span className="sr-only">Menu</span>
                         <svg
@@ -58,17 +72,17 @@ export const Header = () => {
                         >
                             {isMenuOpen ? (
                                 <path
+                                    d="M6 18L18 6M6 6l12 12"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
                                 />
                             ) : (
                                 <path
+                                    d="M4 6h16M4 12h16M4 18h16"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M4 6h16M4 12h16M4 18h16"
                                 />
                             )}
                         </svg>
@@ -78,25 +92,32 @@ export const Header = () => {
                         <p className="font-bold">{siteConfig.title}</p>
                     </div>
                 </div>
-                <ul className="hidden items-center gap-4 md:flex">{getNavItems()}</ul>
-                <div className="hidden items-center gap-4 md:flex">
-                    <Link href="#">{siteConfig.loginButton}</Link>
-                    <Button>{siteConfig.signUpButton}</Button>
+
+                <HeaderNavigation
+                    className="hidden items-center gap-4 md:flex"
+                    pathname={pathname}
+                />
+                <div className="hidden md:block">
+                    <HeaderActions onOpenAuth={openAuthModal} orientation="desktop" />
                 </div>
             </header>
-            {isMenuOpen && (
+
+            {isMenuOpen ? (
                 <div className="border-separator border-t md:hidden">
-                    <ul className="flex flex-col gap-2 p-4">
-                        {getNavItems()}
-                        <li className="border-separator mt-4 flex flex-col gap-2 border-t pt-4">
-                            <Link href="#" className="block py-2">
-                                {siteConfig.loginButton}
-                            </Link>
-                            <Button className="w-full">{siteConfig.signUpButton}</Button>
-                        </li>
-                    </ul>
+                    <HeaderNavigation className="flex flex-col gap-2 p-4" pathname={pathname} />
+                    <div className="border-separator border-t p-4">
+                        <HeaderActions onOpenAuth={openAuthModal} orientation="mobile" />
+                    </div>
                 </div>
-            )}
+            ) : null}
+
+            <AuthModal
+                mode={authMode}
+                onLoginSubmit={notConfiguredSubmit<LoginValues>}
+                onModeChange={setAuthMode}
+                onOpenChange={handleAuthModalOpenChange}
+                onRegistrationSubmit={notConfiguredSubmit<RegistrationValues>}
+            />
         </nav>
     );
 };

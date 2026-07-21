@@ -9,5 +9,5 @@ export const siteConfig = {
     ],
 
     loginButton: "Login",
-    signUpButton: "Sign Up",
+    signUpButton: "Sign up",
 };

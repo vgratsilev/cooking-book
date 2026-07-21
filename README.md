@@ -41,3 +41,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - react 19
 - tailwindcss 4
 - heroui 3
+- zod 4
+
+<!-- compound-to-vault:solutions:start -->
+- No Compound Engineering solutions yet.
+<!-- compound-to-vault:solutions:end -->
+
+## Mirrored plans
+
+<!-- compound-to-vault:plans:start -->
+- [[Projects/cooking-book/docs/plans/2026-07-20-001-refactor-auth-modal-forms-plan|docs/plans/2026-07-20-001-refactor-auth-modal-forms-plan]]
+<!-- compound-to-vault:plans:end -->
+
+## Extracted knowledge
+
+<!-- compound-to-vault:engineering:start -->
+- No extracted knowledge for this sync.
+<!-- compound-to-vault:engineering:end -->

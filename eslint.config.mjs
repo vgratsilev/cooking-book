@@ -4,18 +4,18 @@ import nextTs from "eslint-config-next/typescript";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  eslintConfigPrettier,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    ".heroui-docs/**",
-    "next-env.d.ts",
-  ]),
+    ...nextVitals,
+    ...nextTs,
+    eslintConfigPrettier,
+    // Override default ignores of eslint-config-next.
+    globalIgnores([
+        // Default ignores of eslint-config-next:
+        ".next/**",
+        "out/**",
+        "build/**",
+        ".heroui-docs/**",
+        "next-env.d.ts",
+    ]),
 ]);
 
 export default eslintConfig;
