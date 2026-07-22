@@ -95,13 +95,13 @@ flowchart LR
     HeaderActions --> AuthModal
     HeaderActions --> ThemeToggle
 
-    AuthModal --> LoginForm
+    AuthModal --> SignInForm
     AuthModal --> RegistrationForm
 
-    LoginForm --> ZodSchemas
+    SignInForm --> ZodSchemas
     RegistrationForm --> ZodSchemas
 
-    LoginForm --> AuthSubmitContract
+    SignInForm --> AuthSubmitContract
     RegistrationForm --> AuthSubmitContract
     AuthSubmitContract --> NotConfiguredAdapter
     AuthSubmitContract -. future .-> ServerAction
@@ -133,7 +133,7 @@ stateDiagram-v2
 - KTD2. Использовать один `AuthModal` с `AuthMode = "login" | "registration"`, а не две независимо смонтированные модалки.
 - KTD3. Оставить `CustomModal` presentation-компонентом HeroUI, не содержащим auth state, Zod или Prisma.
 - KTD4. Не добавлять React Hook Form. Для двух небольших форм использовать узкий auth-specific Zod adapter, управляющий touched/errors/pending.
-- KTD5. Выводить `LoginValues` и `RegistrationValues` из Zod-схем, чтобы клиент и будущий Server Action не дублировали типы.
+- KTD5. Выводить `SignInValues` и `RegistrationValues` из Zod-схем, чтобы клиент и будущий Server Action не дублировали типы.
 - KTD6. Представлять submit как async-операцию с явными success, form error и field errors.
 - KTD7. До подключения backend использовать not-configured adapter; не закрывать модалку и не изображать успешный вход.
 - KTD8. Подключить `next-themes` через класс `<html>` с системной темой по умолчанию и сохранением явного выбора.
@@ -146,7 +146,7 @@ stateDiagram-v2
 #### Auth types
 
 - `AuthMode` принимает `"login"` или `"registration"`.
-- `LoginValues` выводится из Login Zod schema.
+- `SignInValues` выводится из SignIn Zod schema.
 - `RegistrationValues` выводится из Registration Zod schema.
 - Submit result различает успешное завершение, общий form error и field errors, привязанные к именам полей.
 
@@ -188,8 +188,8 @@ src/
 │   │   └── ui/
 │   │       ├── AuthModal.tsx
 │   │       ├── AuthModal.test.tsx
-│   │       ├── LoginForm.tsx
-│   │       ├── LoginForm.test.tsx
+│   │       ├── SignInForm.tsx
+│   │       ├── SignInForm.test.tsx
 │   │       ├── RegistrationForm.tsx
 │   │       ├── RegistrationForm.test.tsx
 │   │       └── useAuthForm.ts
@@ -301,7 +301,7 @@ src/
 
 **Dependencies:** U3.
 
-**Files:** `src/features/auth/ui/useAuthForm.ts`, `src/features/auth/ui/LoginForm.tsx`, `src/features/auth/ui/LoginForm.test.tsx`, `src/features/auth/ui/RegistrationForm.tsx`, `src/features/auth/ui/RegistrationForm.test.tsx`.
+**Files:** `src/features/auth/ui/useAuthForm.ts`, `src/features/auth/ui/SignInForm.tsx`, `src/features/auth/ui/SignInForm.test.tsx`, `src/features/auth/ui/RegistrationForm.tsx`, `src/features/auth/ui/RegistrationForm.test.tsx`.
 
 **Approach:**
 

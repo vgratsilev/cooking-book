@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, registrationSchema, zodIssuesToFieldErrors } from "./auth.schemas";
+import { registrationSchema, signInSchema, zodIssuesToFieldErrors } from "./auth.schemas";
 
 describe("auth schemas", () => {
-    it("accepts a login payload with any non-empty password", () => {
+    it("accepts a sign-in payload with any non-empty password", () => {
         expect(
-            loginSchema.safeParse({
+            signInSchema.safeParse({
                 email: "  user@example.com ",
                 password: "short",
             }),
@@ -14,8 +14,8 @@ describe("auth schemas", () => {
         });
     });
 
-    it("rejects an invalid login email and empty password", () => {
-        const result = loginSchema.safeParse({ email: "not-an-email", password: "" });
+    it("rejects an invalid sign-in email and empty password", () => {
+        const result = signInSchema.safeParse({ email: "not-an-email", password: "" });
 
         expect(result.success).toBe(false);
         if (!result.success) {

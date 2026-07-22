@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { z } from "zod";
+import { siteConfig } from "@/config/site.config";
 import { zodIssuesToFieldErrors } from "../model/auth.schemas";
 import type { AuthSubmitHandler } from "../model/auth.types";
 
@@ -168,7 +169,7 @@ export const useAuthForm = <TValues extends StringValues>({
             }));
             setFormError(submitResult.formError);
         } catch {
-            setFormError("Something went wrong. Please try again.");
+            setFormError(siteConfig.genericFormError);
         } finally {
             if (currentSubmissionId === submissionId.current) {
                 setIsPending(false);

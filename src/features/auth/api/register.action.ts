@@ -4,13 +4,14 @@ import { randomBytes, scrypt } from "node:crypto";
 import { promisify } from "node:util";
 import { registrationSchema, zodIssuesToFieldErrors } from "../model/auth.schemas";
 import type { AuthSubmitResult, RegistrationValues } from "../model/auth.types";
+import { siteConfig } from "@/config/site.config";
 import { prisma } from "@/utils/prisma";
 
 const scryptAsync = promisify(scrypt);
 
 const duplicateEmailError = {
     status: "error" as const,
-    fieldErrors: { email: "An account with this email already exists." },
+    fieldErrors: { email: siteConfig.duplicateEmailError },
 };
 
 const isPrismaUniqueConstraintError = (error: unknown) => {
@@ -47,7 +48,7 @@ export async function registerUser(
 
         return {
             status: "error",
-            formError: "Unable to create an account. Please try again.",
+            formError: siteConfig.registrationFailedError,
         };
     }
 }

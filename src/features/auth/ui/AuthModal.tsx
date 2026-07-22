@@ -1,14 +1,14 @@
 "use client";
 
 import { CustomModal } from "@/components/common/CustomModal";
-import type { AuthMode, LoginSubmitHandler, RegistrationSubmitHandler } from "../model/auth.types";
-import { LoginForm } from "./LoginForm";
+import type { AuthMode, RegistrationSubmitHandler, SignInSubmitHandler } from "../model/auth.types";
+import { SignInForm } from "./SignInForm";
 import { RegistrationForm } from "./RegistrationForm";
 import { siteConfig } from "@/config/site.config";
 
 interface AuthModalProps {
     mode: AuthMode | null;
-    onLoginSubmit: LoginSubmitHandler;
+    onSignInSubmit: SignInSubmitHandler;
     onModeChange: (mode: AuthMode) => void;
     onOpenChange: (isOpen: boolean) => void;
     onRegistrationSubmit: RegistrationSubmitHandler;
@@ -16,7 +16,7 @@ interface AuthModalProps {
 
 export const AuthModal = ({
     mode,
-    onLoginSubmit,
+    onSignInSubmit,
     onModeChange,
     onOpenChange,
     onRegistrationSubmit,
@@ -31,17 +31,17 @@ export const AuthModal = ({
                     onCancel={close}
                     onSubmit={onRegistrationSubmit}
                     onSuccess={close}
-                    onSwitchMode={() => onModeChange("login")}
+                    onSwitchMode={() => onModeChange("signIn")}
                 />
             );
         }
 
-        if (mode === "login") {
+        if (mode === "signIn") {
             return (
-                <LoginForm
-                    key="login"
+                <SignInForm
+                    key="signIn"
                     onCancel={close}
-                    onSubmit={onLoginSubmit}
+                    onSubmit={onSignInSubmit}
                     onSuccess={close}
                     onSwitchMode={() => onModeChange("registration")}
                 />
@@ -55,7 +55,8 @@ export const AuthModal = ({
         <CustomModal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
-            title={mode === "registration" ? siteConfig.signUpButton : siteConfig.loginButton}
+            title={mode === "registration" ? siteConfig.signUpButton : siteConfig.signInButton}
+            allowFullScreenOnMobile
             size="lg"
         >
             {renderForm()}

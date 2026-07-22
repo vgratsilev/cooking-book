@@ -21,9 +21,9 @@ describe("Header", () => {
         const user = userEvent.setup();
         render(<Header />);
 
-        await user.click(screen.getAllByRole("button", { name: "Login" })[0]);
+        await user.click(screen.getAllByRole("button", { name: "Sign in" })[0]);
 
-        expect(screen.getByRole("heading", { name: "Login" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
         expect(screen.getAllByRole("dialog")).toHaveLength(1);
     });
 
@@ -37,13 +37,13 @@ describe("Header", () => {
             "true",
         );
 
-        await user.click(screen.getAllByRole("button", { name: "Login" })[1]);
+        await user.click(screen.getAllByRole("button", { name: "Sign in" })[1]);
 
         expect(screen.getByRole("button", { name: "Toggle menu", hidden: true })).toHaveAttribute(
             "aria-expanded",
             "false",
         );
-        expect(screen.getByRole("heading", { name: "Login" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
     });
 
     it("preserves the active navigation link and exposes a separate theme action", async () => {

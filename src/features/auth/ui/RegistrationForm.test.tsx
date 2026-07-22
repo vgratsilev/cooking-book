@@ -22,6 +22,18 @@ const renderRegistrationForm = (onSubmit: RegistrationSubmitHandler = vi.fn()) =
 };
 
 describe("RegistrationForm", () => {
+    it("tabs through actions in their visual order", async () => {
+        const user = userEvent.setup();
+        renderRegistrationForm();
+
+        screen.getByLabelText("Confirm password").focus();
+        await user.tab();
+        expect(screen.getByRole("button", { name: "Sign up" })).toHaveFocus();
+
+        await user.tab();
+        expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    });
+
     it("shows password policy errors after blur", async () => {
         const user = userEvent.setup();
         renderRegistrationForm();
@@ -35,6 +47,13 @@ describe("RegistrationForm", () => {
             screen.getByText(/Password must contain at least one uppercase letter/),
         ).toBeInTheDocument();
         expect(screen.getByText(/Password must contain at least one number/)).toBeInTheDocument();
+        expect(screen.getByText(/Password must be at least 8 characters/).textContent).toBe(
+            [
+                "Password must be at least 8 characters",
+                "Password must contain at least one uppercase letter",
+                "Password must contain at least one number",
+            ].join("\n"),
+        );
     });
 
     it("validates confirmation and rechecks it when the password changes", async () => {

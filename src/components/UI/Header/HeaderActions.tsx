@@ -17,10 +17,10 @@ export const HeaderActions = ({ onOpenAuth, orientation }: HeaderActionsProps) =
         <div className={isMobile ? "flex flex-col gap-2" : "flex items-center gap-4"}>
             <Button
                 className={isMobile ? "w-full" : undefined}
-                onPress={() => onOpenAuth("login")}
+                onPress={() => onOpenAuth("signIn")}
                 variant="tertiary"
             >
-                {siteConfig.loginButton}
+                {siteConfig.signInButton}
             </Button>
             <Button
                 className={isMobile ? "w-full" : undefined}

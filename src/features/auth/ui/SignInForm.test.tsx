@@ -1,16 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { LoginSubmitHandler } from "../model/auth.types";
-import { LoginForm } from "./LoginForm";
+import type { SignInSubmitHandler } from "../model/auth.types";
+import { SignInForm } from "./SignInForm";
 
-const renderLoginForm = (onSubmit: LoginSubmitHandler = vi.fn()) => {
+const renderSignInForm = (onSubmit: SignInSubmitHandler = vi.fn()) => {
     const onCancel = vi.fn();
     const onSuccess = vi.fn();
     const onSwitchMode = vi.fn();
 
     render(
-        <LoginForm
+        <SignInForm
             onCancel={onCancel}
             onSubmit={onSubmit}
             onSuccess={onSuccess}
@@ -21,10 +21,22 @@ const renderLoginForm = (onSubmit: LoginSubmitHandler = vi.fn()) => {
     return { onCancel, onSuccess, onSwitchMode, onSubmit };
 };
 
-describe("LoginForm", () => {
+describe("SignInForm", () => {
+    it("tabs through actions in their visual order", async () => {
+        const user = userEvent.setup();
+        renderSignInForm();
+
+        screen.getByLabelText("Password").focus();
+        await user.tab();
+        expect(screen.getByRole("button", { name: "Sign in" })).toHaveFocus();
+
+        await user.tab();
+        expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    });
+
     it("validates email after blur and clears the error after correction", async () => {
         const user = userEvent.setup();
-        renderLoginForm();
+        renderSignInForm();
         const email = screen.getByRole("textbox", { name: "Email" });
 
         await user.type(email, "invalid");
@@ -39,7 +51,7 @@ describe("LoginForm", () => {
     it("accepts a non-empty password without registration rules", async () => {
         const user = userEvent.setup();
         const onSubmit = vi.fn().mockResolvedValue({ status: "success" });
-        const { onSuccess } = renderLoginForm(onSubmit);
+        const { onSuccess } = renderSignInForm(onSubmit);
 
         await user.type(screen.getByRole("textbox", { name: "Email" }), "user@example.com");
         await user.type(screen.getByLabelText("Password"), "short");
@@ -52,7 +64,7 @@ describe("LoginForm", () => {
     it("focuses the first invalid field and does not submit an empty form", async () => {
         const user = userEvent.setup();
         const onSubmit = vi.fn();
-        renderLoginForm(onSubmit);
+        renderSignInForm(onSubmit);
 
         await user.click(screen.getByRole("button", { name: "Sign in" }));
 
@@ -68,7 +80,7 @@ describe("LoginForm", () => {
             status: "error",
             formError: "Authentication is not configured yet.",
         });
-        renderLoginForm(onSubmit);
+        renderSignInForm(onSubmit);
 
         await user.type(screen.getByRole("textbox", { name: "Email" }), "user@example.com");
         await user.type(screen.getByLabelText("Password"), "short");
@@ -82,14 +94,14 @@ describe("LoginForm", () => {
 
     it("disables fields and blocks duplicate submits while pending", async () => {
         const user = userEvent.setup();
-        let resolveSubmit: ((result: Awaited<ReturnType<LoginSubmitHandler>>) => void) | undefined;
-        const onSubmit = vi.fn<LoginSubmitHandler>(
+        let resolveSubmit: ((result: Awaited<ReturnType<SignInSubmitHandler>>) => void) | undefined;
+        const onSubmit = vi.fn<SignInSubmitHandler>(
             () =>
-                new Promise<Awaited<ReturnType<LoginSubmitHandler>>>((resolve) => {
+                new Promise<Awaited<ReturnType<SignInSubmitHandler>>>((resolve) => {
                     resolveSubmit = resolve;
                 }),
         );
-        renderLoginForm(onSubmit);
+        renderSignInForm(onSubmit);
 
         const email = screen.getByRole("textbox", { name: "Email" });
         const submit = screen.getByRole("button", { name: "Sign in" });

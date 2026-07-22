@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { siteConfig } from "@/config/site.config";
 import { registerUser } from "@/features/auth/api/register.action";
-import type { AuthMode, AuthSubmitResult, LoginValues } from "@/features/auth/model/auth.types";
+import type { AuthMode, AuthSubmitResult, SignInValues } from "@/features/auth/model/auth.types";
 import { AuthModal } from "@/features/auth/ui/AuthModal";
 import { HeaderActions } from "./HeaderActions";
 import { HeaderNavigation } from "./HeaderNavigation";
@@ -16,7 +16,7 @@ const notConfiguredSubmit = async <TValues extends Record<string, string>>(
     void values;
     return {
         status: "error",
-        formError: "Authentication is not configured yet.",
+        formError: siteConfig.authNotConfiguredError,
     };
 };
 
@@ -54,12 +54,12 @@ export const Header = () => {
                 <div className="flex items-center gap-4">
                     <button
                         aria-expanded={isMenuOpen}
-                        aria-label="Toggle menu"
+                        aria-label={siteConfig.toggleMenuLabel}
                         className="cursor-pointer md:hidden"
                         onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
                         type="button"
                     >
-                        <span className="sr-only">Menu</span>
+                        <span className="sr-only">{siteConfig.menuLabel}</span>
                         <svg
                             className="h-6 w-6"
                             fill="none"
@@ -109,7 +109,7 @@ export const Header = () => {
 
             <AuthModal
                 mode={authMode}
-                onLoginSubmit={notConfiguredSubmit<LoginValues>}
+                onSignInSubmit={notConfiguredSubmit<SignInValues>}
                 onModeChange={setAuthMode}
                 onOpenChange={handleAuthModalOpenChange}
                 onRegistrationSubmit={registerUser}

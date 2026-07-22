@@ -2,34 +2,29 @@
 
 import { Button, Description, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { siteConfig } from "@/config/site.config";
-import { registrationSchema } from "../model/auth.schemas";
-import type { RegistrationSubmitHandler } from "../model/auth.types";
+import { signInSchema } from "../model/auth.schemas";
+import type { SignInSubmitHandler } from "../model/auth.types";
 import { useAuthForm } from "./useAuthForm";
 
-interface RegistrationFormProps {
+interface SignInFormProps {
     onCancel: () => void;
-    onSubmit: RegistrationSubmitHandler;
+    onSubmit: SignInSubmitHandler;
     onSuccess: () => void;
     onSwitchMode: () => void;
 }
 
-export const RegistrationForm = ({
-    onCancel,
-    onSubmit,
-    onSuccess,
-    onSwitchMode,
-}: RegistrationFormProps) => {
+export const SignInForm = ({ onCancel, onSubmit, onSuccess, onSwitchMode }: SignInFormProps) => {
     const { errors, formError, handleBlur, handleSubmit, isPending, setFieldValue, values } =
         useAuthForm({
-            initialValues: { email: "", password: "", confirmPassword: "" },
+            initialValues: { email: "", password: "" },
             onSubmit,
             onSuccess,
-            schema: registrationSchema,
+            schema: signInSchema,
         });
 
     return (
         <Form
-            aria-label={siteConfig.registrationFormLabel}
+            aria-label={siteConfig.signInFormLabel}
             className="flex w-full flex-col gap-4"
             onSubmit={(event) => {
                 event.preventDefault();
@@ -62,34 +57,13 @@ export const RegistrationForm = ({
             >
                 <Label>{siteConfig.passwordLabel}</Label>
                 <Input
-                    autoComplete="new-password"
-                    placeholder={siteConfig.newPasswordPlaceholder}
+                    autoComplete="current-password"
+                    placeholder={siteConfig.currentPasswordPlaceholder}
                 />
                 {errors.password ? (
-                    <FieldError className="whitespace-pre-line">{errors.password}</FieldError>
+                    <FieldError>{errors.password}</FieldError>
                 ) : (
-                    <Description>{siteConfig.registrationPasswordDescription}</Description>
-                )}
-            </TextField>
-
-            <TextField
-                isDisabled={isPending}
-                isInvalid={Boolean(errors.confirmPassword)}
-                name="confirmPassword"
-                type="password"
-                value={values.confirmPassword}
-                onChange={(value) => setFieldValue("confirmPassword", value)}
-                onBlur={() => handleBlur("confirmPassword")}
-            >
-                <Label>{siteConfig.confirmPasswordLabel}</Label>
-                <Input
-                    autoComplete="new-password"
-                    placeholder={siteConfig.confirmPasswordPlaceholder}
-                />
-                {errors.confirmPassword ? (
-                    <FieldError>{errors.confirmPassword}</FieldError>
-                ) : (
-                    <Description>{siteConfig.confirmPasswordDescription}</Description>
+                    <Description>{siteConfig.signInPasswordDescription}</Description>
                 )}
             </TextField>
 
@@ -105,7 +79,7 @@ export const RegistrationForm = ({
                     isPending={isPending}
                     type="submit"
                 >
-                    {siteConfig.signUpButton}
+                    {siteConfig.signInButton}
                 </Button>
                 <Button
                     className="min-h-11 w-full md:min-h-0 md:w-auto"
@@ -117,13 +91,13 @@ export const RegistrationForm = ({
             </div>
 
             <p className="text-muted flex flex-col items-center gap-1 text-center text-sm md:block">
-                {siteConfig.alreadyHaveAccountText} <span className="hidden md:inline"> </span>
+                {siteConfig.dontHaveAccountText} <span className="hidden md:inline"> </span>
                 <button
                     className="bg-default hover:bg-default-hover focus-visible:outline-focus md:text-accent md:hover:text-accent-hover min-h-11 w-full cursor-pointer rounded-3xl px-4 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 md:h-auto md:min-h-0 md:w-auto md:bg-transparent md:p-0 md:whitespace-nowrap md:underline md:decoration-1 md:underline-offset-4 md:hover:bg-transparent"
                     type="button"
                     onClick={onSwitchMode}
                 >
-                    {siteConfig.signInButton}
+                    {siteConfig.signUpButton}
                 </button>
             </p>
         </Form>
