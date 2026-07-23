@@ -71,3 +71,19 @@ before cloning project run
 ```
 npx prisma generate
 ```
+
+## Prisma Accelerate
+
+Create an Accelerate connection in the [Prisma Console](https://console.prisma.io/),
+then add its `prisma+postgres://...` URL to your local environment:
+
+```dotenv
+# Used by the application at runtime.
+ACCELERATE_DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=..."
+
+# Direct PostgreSQL URL, used by Prisma CLI commands and migrations.
+DATABASE_URL="postgresql://..."
+```
+
+`npm run dev` uses Accelerate through `ACCELERATE_DATABASE_URL`. Keep
+`DATABASE_URL` direct: do not use the Accelerate URL for migrations.
