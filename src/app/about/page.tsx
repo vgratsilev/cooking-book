@@ -1,7 +1,11 @@
-const AboutPage = () => {
+import { getTranslations } from "next-intl/server";
+
+const AboutPage = async () => {
+    const t = await getTranslations("pages");
+
     return (
         <div>
-            <h1>About</h1>
+            <h1>{t("aboutTitle")}</h1>
         </div>
     );
 };

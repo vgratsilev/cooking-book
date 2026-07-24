@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, Description, FieldError, Form, Input, Label, TextField } from "@heroui/react";
-import { siteConfig } from "@/config/site.config";
-import { registrationSchema } from "../model/auth.schemas";
+import { useTranslations } from "next-intl";
+import { createRegistrationSchema } from "../model/auth.schemas";
 import type { RegistrationSubmitHandler } from "../model/auth.types";
 import { useAuthForm } from "./useAuthForm";
 
@@ -19,17 +19,18 @@ export const RegistrationForm = ({
     onSuccess,
     onSwitchMode,
 }: RegistrationFormProps) => {
+    const t = useTranslations("auth");
     const { errors, formError, handleBlur, handleSubmit, isPending, setFieldValue, values } =
         useAuthForm({
             initialValues: { email: "", password: "", confirmPassword: "" },
             onSubmit,
             onSuccess,
-            schema: registrationSchema,
+            schema: createRegistrationSchema(),
         });
 
     return (
         <Form
-            aria-label={siteConfig.registrationFormLabel}
+            aria-label={t("registrationFormLabel")}
             className="flex w-full flex-col gap-4"
             onSubmit={(event) => {
                 event.preventDefault();
@@ -46,8 +47,8 @@ export const RegistrationForm = ({
                 onChange={(value) => setFieldValue("email", value)}
                 onBlur={() => handleBlur("email")}
             >
-                <Label>{siteConfig.emailLabel}</Label>
-                <Input autoComplete="email" placeholder={siteConfig.emailPlaceholder} />
+                <Label>{t("emailLabel")}</Label>
+                <Input autoComplete="email" placeholder={t("emailPlaceholder")} />
                 {errors.email ? <FieldError>{errors.email}</FieldError> : null}
             </TextField>
 
@@ -60,15 +61,12 @@ export const RegistrationForm = ({
                 onChange={(value) => setFieldValue("password", value)}
                 onBlur={() => handleBlur("password")}
             >
-                <Label>{siteConfig.passwordLabel}</Label>
-                <Input
-                    autoComplete="new-password"
-                    placeholder={siteConfig.newPasswordPlaceholder}
-                />
+                <Label>{t("passwordLabel")}</Label>
+                <Input autoComplete="new-password" placeholder={t("newPasswordPlaceholder")} />
                 {errors.password ? (
                     <FieldError className="whitespace-pre-line">{errors.password}</FieldError>
                 ) : (
-                    <Description>{siteConfig.registrationPasswordDescription}</Description>
+                    <Description>{t("registrationPasswordDescription")}</Description>
                 )}
             </TextField>
 
@@ -81,15 +79,12 @@ export const RegistrationForm = ({
                 onChange={(value) => setFieldValue("confirmPassword", value)}
                 onBlur={() => handleBlur("confirmPassword")}
             >
-                <Label>{siteConfig.confirmPasswordLabel}</Label>
-                <Input
-                    autoComplete="new-password"
-                    placeholder={siteConfig.confirmPasswordPlaceholder}
-                />
+                <Label>{t("confirmPasswordLabel")}</Label>
+                <Input autoComplete="new-password" placeholder={t("confirmPasswordPlaceholder")} />
                 {errors.confirmPassword ? (
                     <FieldError>{errors.confirmPassword}</FieldError>
                 ) : (
-                    <Description>{siteConfig.confirmPasswordDescription}</Description>
+                    <Description>{t("confirmPasswordDescription")}</Description>
                 )}
             </TextField>
 
@@ -105,25 +100,25 @@ export const RegistrationForm = ({
                     isPending={isPending}
                     type="submit"
                 >
-                    {siteConfig.signUpButton}
+                    {t("signUpButton")}
                 </Button>
                 <Button
                     className="min-h-11 w-full md:min-h-0 md:w-auto"
                     onPress={onCancel}
                     variant="secondary"
                 >
-                    {siteConfig.cancelButton}
+                    {t("cancelButton")}
                 </Button>
             </div>
 
             <p className="text-muted flex flex-col items-center gap-1 text-center text-sm md:block">
-                {siteConfig.alreadyHaveAccountText} <span className="hidden md:inline"> </span>
+                {t("alreadyHaveAccountText")} <span className="hidden md:inline"> </span>
                 <button
                     className="bg-default hover:bg-default-hover focus-visible:outline-focus md:text-accent md:hover:text-accent-hover min-h-11 w-full cursor-pointer rounded-3xl px-4 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 md:h-auto md:min-h-0 md:w-auto md:bg-transparent md:p-0 md:whitespace-nowrap md:underline md:decoration-1 md:underline-offset-4 md:hover:bg-transparent"
                     type="button"
                     onClick={onSwitchMode}
                 >
-                    {siteConfig.signInButton}
+                    {t("signInButton")}
                 </button>
             </p>
         </Form>

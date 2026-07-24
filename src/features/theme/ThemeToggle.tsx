@@ -26,6 +26,7 @@ export const ThemeToggle = () => {
             aria-label={`Switch to ${nextTheme} theme`}
             isIconOnly
             onPress={() => setTheme(nextTheme)}
+            size="sm"
             variant="secondary"
         >
             <span aria-hidden="true">{isDark ? "☀" : "☾"}</span>

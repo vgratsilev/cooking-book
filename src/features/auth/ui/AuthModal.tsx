@@ -1,10 +1,10 @@
 "use client";
 
 import { CustomModal } from "@/components/common/CustomModal";
+import { useTranslations } from "next-intl";
 import type { AuthMode, RegistrationSubmitHandler, SignInSubmitHandler } from "../model/auth.types";
 import { SignInForm } from "./SignInForm";
 import { RegistrationForm } from "./RegistrationForm";
-import { siteConfig } from "@/config/site.config";
 
 interface AuthModalProps {
     mode: AuthMode | null;
@@ -12,6 +12,7 @@ interface AuthModalProps {
     onModeChange: (mode: AuthMode) => void;
     onOpenChange: (isOpen: boolean) => void;
     onRegistrationSubmit: RegistrationSubmitHandler;
+    onSuccess: () => void;
 }
 
 export const AuthModal = ({
@@ -20,7 +21,9 @@ export const AuthModal = ({
     onModeChange,
     onOpenChange,
     onRegistrationSubmit,
+    onSuccess,
 }: AuthModalProps) => {
+    const t = useTranslations("auth");
     const isOpen = mode !== null;
     const close = () => onOpenChange(false);
     const renderForm = () => {
@@ -30,7 +33,10 @@ export const AuthModal = ({
                     key="registration"
                     onCancel={close}
                     onSubmit={onRegistrationSubmit}
-                    onSuccess={close}
+                    onSuccess={() => {
+                        close();
+                        onSuccess();
+                    }}
                     onSwitchMode={() => onModeChange("signIn")}
                 />
             );
@@ -42,7 +48,10 @@ export const AuthModal = ({
                     key="signIn"
                     onCancel={close}
                     onSubmit={onSignInSubmit}
-                    onSuccess={close}
+                    onSuccess={() => {
+                        close();
+                        onSuccess();
+                    }}
                     onSwitchMode={() => onModeChange("registration")}
                 />
             );
@@ -55,7 +64,7 @@ export const AuthModal = ({
         <CustomModal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
-            title={mode === "registration" ? siteConfig.signUpButton : siteConfig.signInButton}
+            title={mode === "registration" ? t("signUpButton") : t("signInButton")}
             allowFullScreenOnMobile
             size="lg"
         >

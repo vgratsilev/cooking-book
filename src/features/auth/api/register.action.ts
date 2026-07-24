@@ -1,54 +1,69 @@
 "use server";
 
-import { randomBytes, scrypt } from "node:crypto";
-import { promisify } from "node:util";
-import { registrationSchema, zodIssuesToFieldErrors } from "../model/auth.schemas";
+import { getTranslations } from "next-intl/server";
+import {
+    createRegistrationSchema,
+    getValidationMessages,
+    zodIssuesToFieldErrors,
+} from "../model/auth.schemas";
 import type { AuthSubmitResult, RegistrationValues } from "../model/auth.types";
-import { siteConfig } from "@/config/site.config";
 import { prisma } from "@/utils/prisma";
+import { signIn } from "../auth";
+import { hashPassword } from "../lib/password";
 
-const scryptAsync = promisify(scrypt);
-
-const duplicateEmailError = {
+const duplicateEmailError = (message: string) => ({
     status: "error" as const,
-    fieldErrors: { email: siteConfig.duplicateEmailError },
-};
+    fieldErrors: { email: message },
+});
 
 const isPrismaUniqueConstraintError = (error: unknown) => {
     return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
 };
 
-const hashPassword = async (password: string) => {
-    const salt = randomBytes(16).toString("hex");
-    const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
-
-    return `${salt}:${derivedKey.toString("hex")}`;
-};
-
 export async function registerUser(
     values: RegistrationValues,
 ): Promise<AuthSubmitResult<keyof RegistrationValues>> {
-    const validationResult = registrationSchema.safeParse(values);
+    const validationT = await getTranslations("validation");
+    const serverErrorT = await getTranslations("serverErrors");
+    const validationMessages = getValidationMessages(validationT);
+    const validationResult = createRegistrationSchema().safeParse(values);
 
     if (!validationResult.success) {
         return {
             status: "error",
-            fieldErrors: zodIssuesToFieldErrors(validationResult.error),
+            fieldErrors: zodIssuesToFieldErrors(validationResult.error, validationMessages),
         };
     }
 
+    const existingUser = await prisma.user.findUnique({
+        where: { email: validationResult.data.email },
+    });
+
+    if (existingUser) {
+        return duplicateEmailError(serverErrorT("duplicateEmailError"));
+    }
+
     try {
-        const password = await hashPassword(validationResult.data.password);
-        await prisma.user.create({ data: { email: validationResult.data.email, password } });
+        await prisma.user.create({
+            data: {
+                email: validationResult.data.email,
+                password: await hashPassword(validationResult.data.password),
+            },
+        });
+        await signIn("credentials", {
+            email: validationResult.data.email,
+            password: validationResult.data.password,
+            redirect: false,
+        });
         return { status: "success" };
     } catch (error) {
         if (isPrismaUniqueConstraintError(error)) {
-            return duplicateEmailError;
+            return duplicateEmailError(serverErrorT("duplicateEmailError"));
         }
 
         return {
             status: "error",
-            formError: siteConfig.registrationFailedError,
+            formError: serverErrorT("registrationFailedError"),
         };
     }
 }

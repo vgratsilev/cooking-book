@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { AuthMode, RegistrationSubmitHandler, SignInSubmitHandler } from "../model/auth.types";
 import { AuthModal } from "./AuthModal";
+import { renderWithIntl } from "@/test/intl";
 
 const signInSubmit: SignInSubmitHandler = vi.fn().mockResolvedValue({
     status: "error",
@@ -24,6 +25,7 @@ const ControlledAuthModal = ({ initialMode }: { initialMode: AuthMode }) => {
             onModeChange={setMode}
             onOpenChange={(isOpen) => setMode(isOpen ? mode : null)}
             onRegistrationSubmit={registrationSubmit}
+            onSuccess={vi.fn()}
         />
     );
 };
@@ -31,7 +33,7 @@ const ControlledAuthModal = ({ initialMode }: { initialMode: AuthMode }) => {
 describe("AuthModal", () => {
     it("renders one mode at a time and keeps the overlay open while switching", async () => {
         const user = userEvent.setup();
-        render(<ControlledAuthModal initialMode="signIn" />);
+        renderWithIntl(<ControlledAuthModal initialMode="signIn" />);
 
         expect(screen.getAllByRole("dialog")).toHaveLength(1);
         expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
@@ -47,7 +49,7 @@ describe("AuthModal", () => {
 
     it("unmounts the previous form so values and errors do not leak between modes", async () => {
         const user = userEvent.setup();
-        render(<ControlledAuthModal initialMode="signIn" />);
+        renderWithIntl(<ControlledAuthModal initialMode="signIn" />);
 
         await user.type(screen.getByRole("textbox", { name: "Email" }), "old@example.com");
         await user.click(screen.getByRole("button", { name: "Sign up" }));
@@ -64,13 +66,14 @@ describe("AuthModal", () => {
                 resolveSignIn = resolve;
             });
 
-        const { rerender } = render(
+        const { rerender } = renderWithIntl(
             <AuthModal
                 mode="signIn"
                 onSignInSubmit={pendingSignIn}
                 onModeChange={() => undefined}
                 onOpenChange={() => undefined}
                 onRegistrationSubmit={registrationSubmit}
+                onSuccess={vi.fn()}
             />,
         );
 
@@ -81,6 +84,7 @@ describe("AuthModal", () => {
         rerender(
             <AuthModal
                 mode="registration"
+                onSuccess={vi.fn()}
                 onSignInSubmit={pendingSignIn}
                 onModeChange={() => undefined}
                 onOpenChange={() => undefined}

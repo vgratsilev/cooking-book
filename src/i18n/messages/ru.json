@@ -1,0 +1,70 @@
+{
+    "site": {
+        "title": "Кулинарная книга",
+        "description": "Рецепты кулинарной книги"
+    },
+    "header": {
+        "title": "Кулинарная книга",
+        "toggleMenuLabel": "Открыть меню",
+        "menuLabel": "Меню",
+        "signInButton": "Войти",
+        "signUpButton": "Зарегистрироваться",
+        "signOutButton": "Выйти",
+        "authenticatedUserLabel": "Авторизованный пользователь",
+        "languageLabel": "Язык",
+        "languageAndThemeLabel": "Язык и тема",
+        "englishLanguageName": "English",
+        "russianLanguageName": "Русский"
+    },
+    "navigation": {
+        "recipes": "Рецепты",
+        "ingredients": "Ингредиенты",
+        "about": "О проекте"
+    },
+    "pages": {
+        "homeTitle": "Рецепты",
+        "ingredientsTitle": "Ингредиенты",
+        "aboutTitle": "О проекте"
+    },
+    "notFound": {
+        "title": "Страница не найдена",
+        "returnToMain": "Вернуться на главную"
+    },
+    "auth": {
+        "signInButton": "Войти",
+        "signUpButton": "Зарегистрироваться",
+        "cancelButton": "Отмена",
+        "alreadyHaveAccountText": "Уже есть аккаунт?",
+        "dontHaveAccountText": "Нет аккаунта?",
+        "emailLabel": "Электронная почта",
+        "passwordLabel": "Пароль",
+        "confirmPasswordLabel": "Подтвердите пароль",
+        "emailPlaceholder": "ivan@example.com",
+        "newPasswordPlaceholder": "Придумайте пароль",
+        "currentPasswordPlaceholder": "Введите пароль",
+        "confirmPasswordPlaceholder": "Повторите пароль",
+        "confirmPasswordDescription": "Повторите пароль.",
+        "registrationPasswordDescription": "Не менее 8 символов, 1 заглавная буква и 1 цифра.",
+        "signInPasswordDescription": "Введите пароль.",
+        "signInFormLabel": "Форма входа",
+        "registrationFormLabel": "Форма регистрации"
+    },
+    "validation": {
+        "emailRequiredError": "Введите электронную почту",
+        "invalidEmailError": "Введите корректный адрес электронной почты",
+        "passwordRequiredError": "Введите пароль",
+        "passwordMinLengthError": "Пароль должен содержать не менее 8 символов",
+        "passwordMaxLengthError": "Пароль должен содержать не более 32 символов",
+        "passwordUppercaseError": "Пароль должен содержать хотя бы одну заглавную букву",
+        "passwordNumberError": "Пароль должен содержать хотя бы одну цифру",
+        "confirmPasswordRequiredError": "Подтвердите пароль",
+        "passwordsMismatchError": "Пароли должны совпадать",
+        "genericFormError": "Что-то пошло не так. Попробуйте ещё раз."
+    },
+    "serverErrors": {
+        "duplicateEmailError": "Аккаунт с такой почтой уже существует.",
+        "registrationFailedError": "Не удалось создать аккаунт. Попробуйте ещё раз.",
+        "authNotConfiguredError": "Авторизация пока не настроена.",
+        "invalidCredentialsError": "Неверная почта или пароль."
+    }
+}

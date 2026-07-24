@@ -43,6 +43,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - heroui 3
 - zod 4
 - prisma 7
+- Auth.js 5
+- next-intl 4
 
 <!-- compound-to-vault:solutions:start -->
 

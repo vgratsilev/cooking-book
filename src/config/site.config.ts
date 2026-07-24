@@ -1,42 +1,15 @@
-export const siteConfig = {
-    title: "Cooking book",
-    description: "Cooking book receipts",
-    toggleMenuLabel: "Toggle menu",
-    menuLabel: "Menu",
+export const locales = ["en", "ru"] as const;
+export type Locale = (typeof locales)[number];
 
-    navItems: [
-        { href: "/", label: "Receipts" },
-        { href: "/ingredients", label: "Ingredients" },
-        { href: "/about", label: "About" },
-    ],
+export const defaultLocale: Locale = "en";
+export const localeCookieName = "cooking-book-locale";
 
-    signInButton: "Sign in",
-    signUpButton: "Sign up",
-    cancelButton: "Cancel",
-    alreadyHaveAccountText: "Already have an account?",
-    dontHaveAccountText: "Don't have an account?",
-    emailLabel: "Email",
-    passwordLabel: "Password",
-    confirmPasswordLabel: "Confirm password",
-    emailPlaceholder: "john@example.com",
-    newPasswordPlaceholder: "Create a password",
-    currentPasswordPlaceholder: "Enter your password",
-    confirmPasswordPlaceholder: "Repeat your password",
-    confirmPasswordDescription: "Repeat your password.",
-    registrationPasswordDescription: "At least 8 characters, 1 uppercase letter, and 1 number.",
-    signInPasswordDescription: "Enter your password.",
-    signInFormLabel: "Sign in form",
-    registrationFormLabel: "Registration form",
-    emailRequiredError: "Email is required",
-    invalidEmailError: "Please enter a valid email address",
-    passwordRequiredError: "Password is required",
-    passwordMinLengthError: "Password must be at least 8 characters",
-    passwordUppercaseError: "Password must contain at least one uppercase letter",
-    passwordNumberError: "Password must contain at least one number",
-    confirmPasswordRequiredError: "Confirm password is required",
-    passwordsMismatchError: "Passwords must match",
-    duplicateEmailError: "An account with this email already exists.",
-    genericFormError: "Something went wrong. Please try again.",
-    registrationFailedError: "Unable to create an account. Please try again.",
-    authNotConfiguredError: "Authentication is not configured yet.",
+export const navItems = [
+    { href: "/", labelKey: "recipes" },
+    { href: "/ingredients", labelKey: "ingredients" },
+    { href: "/about", labelKey: "about" },
+] as const;
+
+export const isLocale = (value: string | undefined): value is Locale => {
+    return locales.includes(value as Locale);
 };

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { z } from "zod";
-import { siteConfig } from "@/config/site.config";
-import { zodIssuesToFieldErrors } from "../model/auth.schemas";
+import { getValidationMessages, zodIssuesToFieldErrors } from "../model/auth.schemas";
 import type { AuthSubmitHandler } from "../model/auth.types";
 
 type StringValues = Record<string, string>;
@@ -28,6 +28,8 @@ export const useAuthForm = <TValues extends StringValues>({
     schema,
     onSuccess,
 }: UseAuthFormOptions<TValues>) => {
+    const validationT = useTranslations("validation");
+    const validationMessages = useMemo(() => getValidationMessages(validationT), [validationT]);
     const [values, setValues] = useState(initialValues);
     const [touched, setTouched] = useState<Partial<Record<FieldName<TValues>, boolean>>>({});
     const [errors, setErrors] = useState<Partial<Record<FieldName<TValues>, string>>>({});
@@ -45,9 +47,9 @@ export const useAuthForm = <TValues extends StringValues>({
         (nextValues: TValues) => {
             const result = schema.safeParse(nextValues);
 
-            return result.success ? {} : zodIssuesToFieldErrors(result.error);
+            return result.success ? {} : zodIssuesToFieldErrors(result.error, validationMessages);
         },
-        [schema],
+        [schema, validationMessages],
     );
 
     const validateFields = useCallback(
@@ -134,9 +136,10 @@ export const useAuthForm = <TValues extends StringValues>({
         const result = schema.safeParse(values);
 
         if (!result.success) {
-            const validationErrors = zodIssuesToFieldErrors(result.error) as Partial<
-                Record<FieldName<TValues>, string>
-            >;
+            const validationErrors = zodIssuesToFieldErrors(
+                result.error,
+                validationMessages,
+            ) as Partial<Record<FieldName<TValues>, string>>;
             setTouched(
                 Object.keys(values).reduce(
                     (allTouched, field) => ({ ...allTouched, [field]: true }),
@@ -169,13 +172,22 @@ export const useAuthForm = <TValues extends StringValues>({
             }));
             setFormError(submitResult.formError);
         } catch {
-            setFormError(siteConfig.genericFormError);
+            setFormError(validationT("genericFormError"));
         } finally {
             if (currentSubmissionId === submissionId.current) {
                 setIsPending(false);
             }
         }
-    }, [focusFirstInvalidField, isPending, onSubmit, onSuccess, schema, values]);
+    }, [
+        focusFirstInvalidField,
+        isPending,
+        onSubmit,
+        onSuccess,
+        schema,
+        validationMessages,
+        validationT,
+        values,
+    ]);
 
     return {
         errors,

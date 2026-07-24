@@ -1,9 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createUser = vi.hoisted(() => vi.fn());
+const findUniqueUser = vi.hoisted(() => vi.fn());
+const signIn = vi.hoisted(() => vi.fn());
+
+import messages from "@/i18n/messages/en.json";
 
 vi.mock("@/utils/prisma", () => ({
-    prisma: { user: { create: createUser } },
+    prisma: { user: { create: createUser, findUnique: findUniqueUser } },
+}));
+
+vi.mock("../auth", () => ({ signIn }));
+vi.mock("next-intl/server", () => ({
+    getTranslations: vi.fn(async (namespace: keyof typeof messages) => {
+        const namespaceMessages = messages[namespace];
+        return (key: keyof typeof namespaceMessages) => namespaceMessages[key];
+    }),
 }));
 
 import { registerUser } from "./register.action";
@@ -17,12 +29,18 @@ const registrationValues = {
 describe("registerUser", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        findUniqueUser.mockResolvedValue(null);
+        signIn.mockResolvedValue("/");
     });
 
     it("creates a user after validating values on the server", async () => {
         createUser.mockResolvedValue({ id: "user-id", email: registrationValues.email });
 
         await expect(registerUser(registrationValues)).resolves.toEqual({ status: "success" });
+
+        expect(findUniqueUser).toHaveBeenCalledWith({
+            where: { email: registrationValues.email },
+        });
 
         expect(createUser).toHaveBeenCalledWith({
             data: {
@@ -31,14 +49,32 @@ describe("registerUser", () => {
             },
         });
         expect(createUser.mock.calls[0][0].data.password).not.toBe(registrationValues.password);
+        expect(signIn).toHaveBeenCalledWith("credentials", {
+            email: registrationValues.email,
+            password: registrationValues.password,
+            redirect: false,
+        });
     });
 
-    it("returns an email field error when the email is already registered", async () => {
+    it("returns an email field error before creating a duplicate account", async () => {
+        findUniqueUser.mockResolvedValue({ id: "existing-user-id" });
+
+        await expect(registerUser(registrationValues)).resolves.toEqual({
+            fieldErrors: { email: "An account with this email already exists." },
+            status: "error",
+        });
+
+        expect(createUser).not.toHaveBeenCalled();
+        expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it("returns an email field error when a concurrent create hits P2002", async () => {
         createUser.mockRejectedValue({ code: "P2002" });
 
         await expect(registerUser(registrationValues)).resolves.toEqual({
             fieldErrors: { email: "An account with this email already exists." },
             status: "error",
         });
+        expect(signIn).not.toHaveBeenCalled();
     });
 });

@@ -1,0 +1,70 @@
+{
+    "site": {
+        "title": "Cooking book",
+        "description": "Cooking book recipes"
+    },
+    "header": {
+        "title": "Cooking book",
+        "toggleMenuLabel": "Toggle menu",
+        "menuLabel": "Menu",
+        "signInButton": "Sign in",
+        "signUpButton": "Sign up",
+        "signOutButton": "Sign out",
+        "authenticatedUserLabel": "Signed-in user",
+        "languageLabel": "Language",
+        "languageAndThemeLabel": "Language and theme",
+        "englishLanguageName": "English",
+        "russianLanguageName": "Russian"
+    },
+    "navigation": {
+        "recipes": "Recipes",
+        "ingredients": "Ingredients",
+        "about": "About"
+    },
+    "pages": {
+        "homeTitle": "Recipes",
+        "ingredientsTitle": "Ingredients",
+        "aboutTitle": "About"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "returnToMain": "Return to main"
+    },
+    "auth": {
+        "signInButton": "Sign in",
+        "signUpButton": "Sign up",
+        "cancelButton": "Cancel",
+        "alreadyHaveAccountText": "Already have an account?",
+        "dontHaveAccountText": "Don't have an account?",
+        "emailLabel": "Email",
+        "passwordLabel": "Password",
+        "confirmPasswordLabel": "Confirm password",
+        "emailPlaceholder": "john@example.com",
+        "newPasswordPlaceholder": "Create a password",
+        "currentPasswordPlaceholder": "Enter your password",
+        "confirmPasswordPlaceholder": "Repeat your password",
+        "confirmPasswordDescription": "Repeat your password.",
+        "registrationPasswordDescription": "At least 8 characters, 1 uppercase letter, and 1 number.",
+        "signInPasswordDescription": "Enter your password.",
+        "signInFormLabel": "Sign in form",
+        "registrationFormLabel": "Registration form"
+    },
+    "validation": {
+        "emailRequiredError": "Email is required",
+        "invalidEmailError": "Please enter a valid email address",
+        "passwordRequiredError": "Password is required",
+        "passwordMinLengthError": "Password must be at least 8 characters",
+        "passwordMaxLengthError": "Password must be at most 32 characters",
+        "passwordUppercaseError": "Password must contain at least one uppercase letter",
+        "passwordNumberError": "Password must contain at least one number",
+        "confirmPasswordRequiredError": "Confirm password is required",
+        "passwordsMismatchError": "Passwords must match",
+        "genericFormError": "Something went wrong. Please try again."
+    },
+    "serverErrors": {
+        "duplicateEmailError": "An account with this email already exists.",
+        "registrationFailedError": "Unable to create an account. Please try again.",
+        "authNotConfiguredError": "Authentication is not configured yet.",
+        "invalidCredentialsError": "Invalid email or password."
+    }
+}

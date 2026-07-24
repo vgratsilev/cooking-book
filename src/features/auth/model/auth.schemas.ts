@@ -1,45 +1,69 @@
 import { z } from "zod";
-import { siteConfig } from "@/config/site.config";
+import enMessages from "@/i18n/messages/en.json";
 
-const emailSchema = z
-    .string()
-    .trim()
-    .superRefine((value, context) => {
-        if (!value) {
-            context.addIssue({ code: "custom", message: siteConfig.emailRequiredError });
-        } else if (!z.string().email().safeParse(value).success) {
-            context.addIssue({ code: "custom", message: siteConfig.invalidEmailError });
-        }
+export type ValidationMessages = typeof enMessages.validation;
+
+export const defaultValidationMessages: ValidationMessages = enMessages.validation;
+
+export const getValidationMessages = (translate: (key: string) => string) => {
+    return Object.keys(defaultValidationMessages).reduce((messages, key) => {
+        messages[key as keyof ValidationMessages] = translate(key);
+        return messages;
+    }, {} as ValidationMessages);
+};
+
+const createEmailSchema = () =>
+    z
+        .string()
+        .trim()
+        .superRefine((value, context) => {
+            if (!value) {
+                context.addIssue({ code: "custom", message: "emailRequiredError" });
+            } else if (!z.string().email().safeParse(value).success) {
+                context.addIssue({ code: "custom", message: "invalidEmailError" });
+            }
+        });
+
+export const createSignInSchema = () =>
+    z.object({
+        email: createEmailSchema(),
+        password: z.string().min(1, "passwordRequiredError"),
     });
 
-export const signInSchema = z.object({
-    email: emailSchema,
-    password: z.string().min(1, siteConfig.passwordRequiredError),
-});
+export const createRegistrationSchema = () =>
+    z
+        .object({
+            email: createEmailSchema(),
+            password: z
+                .string()
+                .min(8, "passwordMinLengthError")
+                .max(32, "passwordMaxLengthError")
+                .regex(/[A-Z]/, "passwordUppercaseError")
+                .regex(/[0-9]/, "passwordNumberError"),
+            confirmPassword: z
+                .string()
+                .min(1, "confirmPasswordRequiredError")
+                .max(32, "passwordMaxLengthError"),
+        })
+        .superRefine(({ password, confirmPassword }, context) => {
+            if (confirmPassword && password !== confirmPassword) {
+                context.addIssue({
+                    code: "custom",
+                    message: "passwordsMismatchError",
+                    path: ["confirmPassword"],
+                });
+            }
+        });
 
-export const registrationSchema = z
-    .object({
-        email: emailSchema,
-        password: z
-            .string()
-            .min(8, siteConfig.passwordMinLengthError)
-            .regex(/[A-Z]/, siteConfig.passwordUppercaseError)
-            .regex(/[0-9]/, siteConfig.passwordNumberError),
-        confirmPassword: z.string().min(1, siteConfig.confirmPasswordRequiredError),
-    })
-    .superRefine(({ password, confirmPassword }, context) => {
-        if (confirmPassword && password !== confirmPassword) {
-            context.addIssue({
-                code: "custom",
-                message: siteConfig.passwordsMismatchError,
-                path: ["confirmPassword"],
-            });
-        }
-    });
+export const signInSchema = createSignInSchema();
+export const registrationSchema = createRegistrationSchema();
 
 export type AuthFieldErrorMap = Partial<Record<string, string>>;
 
-export const zodIssuesToFieldErrors = (error: z.ZodError): AuthFieldErrorMap => {
+export const zodIssuesToFieldErrors = (
+    error: z.ZodError,
+    messages: ValidationMessages = defaultValidationMessages,
+): AuthFieldErrorMap => {
     return error.issues.reduce<AuthFieldErrorMap>((fieldErrors, issue) => {
         const field = issue.path[0];
 
@@ -47,9 +71,8 @@ export const zodIssuesToFieldErrors = (error: z.ZodError): AuthFieldErrorMap => 
             return fieldErrors;
         }
 
-        fieldErrors[field] = fieldErrors[field]
-            ? `${fieldErrors[field]}\n${issue.message}`
-            : issue.message;
+        const message = messages[issue.message as keyof ValidationMessages] ?? issue.message;
+        fieldErrors[field] = fieldErrors[field] ? `${fieldErrors[field]}\n${message}` : message;
         return fieldErrors;
     }, {});
 };

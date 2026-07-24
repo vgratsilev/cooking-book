@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, Description, FieldError, Form, Input, Label, TextField } from "@heroui/react";
-import { siteConfig } from "@/config/site.config";
-import { signInSchema } from "../model/auth.schemas";
+import { useTranslations } from "next-intl";
+import { createSignInSchema } from "../model/auth.schemas";
 import type { SignInSubmitHandler } from "../model/auth.types";
 import { useAuthForm } from "./useAuthForm";
 
@@ -14,17 +14,18 @@ interface SignInFormProps {
 }
 
 export const SignInForm = ({ onCancel, onSubmit, onSuccess, onSwitchMode }: SignInFormProps) => {
+    const t = useTranslations("auth");
     const { errors, formError, handleBlur, handleSubmit, isPending, setFieldValue, values } =
         useAuthForm({
             initialValues: { email: "", password: "" },
             onSubmit,
             onSuccess,
-            schema: signInSchema,
+            schema: createSignInSchema(),
         });
 
     return (
         <Form
-            aria-label={siteConfig.signInFormLabel}
+            aria-label={t("signInFormLabel")}
             className="flex w-full flex-col gap-4"
             onSubmit={(event) => {
                 event.preventDefault();
@@ -41,8 +42,8 @@ export const SignInForm = ({ onCancel, onSubmit, onSuccess, onSwitchMode }: Sign
                 onChange={(value) => setFieldValue("email", value)}
                 onBlur={() => handleBlur("email")}
             >
-                <Label>{siteConfig.emailLabel}</Label>
-                <Input autoComplete="email" placeholder={siteConfig.emailPlaceholder} />
+                <Label>{t("emailLabel")}</Label>
+                <Input autoComplete="email" placeholder={t("emailPlaceholder")} />
                 {errors.email ? <FieldError>{errors.email}</FieldError> : null}
             </TextField>
 
@@ -55,15 +56,15 @@ export const SignInForm = ({ onCancel, onSubmit, onSuccess, onSwitchMode }: Sign
                 onChange={(value) => setFieldValue("password", value)}
                 onBlur={() => handleBlur("password")}
             >
-                <Label>{siteConfig.passwordLabel}</Label>
+                <Label>{t("passwordLabel")}</Label>
                 <Input
                     autoComplete="current-password"
-                    placeholder={siteConfig.currentPasswordPlaceholder}
+                    placeholder={t("currentPasswordPlaceholder")}
                 />
                 {errors.password ? (
                     <FieldError>{errors.password}</FieldError>
                 ) : (
-                    <Description>{siteConfig.signInPasswordDescription}</Description>
+                    <Description>{t("signInPasswordDescription")}</Description>
                 )}
             </TextField>
 
@@ -79,25 +80,25 @@ export const SignInForm = ({ onCancel, onSubmit, onSuccess, onSwitchMode }: Sign
                     isPending={isPending}
                     type="submit"
                 >
-                    {siteConfig.signInButton}
+                    {t("signInButton")}
                 </Button>
                 <Button
                     className="min-h-11 w-full md:min-h-0 md:w-auto"
                     onPress={onCancel}
                     variant="secondary"
                 >
-                    {siteConfig.cancelButton}
+                    {t("cancelButton")}
                 </Button>
             </div>
 
             <p className="text-muted flex flex-col items-center gap-1 text-center text-sm md:block">
-                {siteConfig.dontHaveAccountText} <span className="hidden md:inline"> </span>
+                {t("dontHaveAccountText")} <span className="hidden md:inline"> </span>
                 <button
                     className="bg-default hover:bg-default-hover focus-visible:outline-focus md:text-accent md:hover:text-accent-hover min-h-11 w-full cursor-pointer rounded-3xl px-4 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 md:h-auto md:min-h-0 md:w-auto md:bg-transparent md:p-0 md:whitespace-nowrap md:underline md:decoration-1 md:underline-offset-4 md:hover:bg-transparent"
                     type="button"
                     onClick={onSwitchMode}
                 >
-                    {siteConfig.signUpButton}
+                    {t("signUpButton")}
                 </button>
             </p>
         </Form>

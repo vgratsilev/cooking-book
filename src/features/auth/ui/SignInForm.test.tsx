@@ -1,15 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { SignInSubmitHandler } from "../model/auth.types";
 import { SignInForm } from "./SignInForm";
+import { renderWithIntl } from "@/test/intl";
 
 const renderSignInForm = (onSubmit: SignInSubmitHandler = vi.fn()) => {
     const onCancel = vi.fn();
     const onSuccess = vi.fn();
     const onSwitchMode = vi.fn();
 
-    render(
+    renderWithIntl(
         <SignInForm
             onCancel={onCancel}
             onSubmit={onSubmit}
