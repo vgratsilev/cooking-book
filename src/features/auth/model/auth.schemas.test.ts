@@ -2,15 +2,26 @@ import { describe, expect, it } from "vitest";
 import { registrationSchema, signInSchema, zodIssuesToFieldErrors } from "./auth.schemas";
 
 describe("auth schemas", () => {
-    it("accepts a sign-in payload with any non-empty password", () => {
+    it("trims and lowercases email while accepting any non-empty password", () => {
         expect(
             signInSchema.safeParse({
-                email: "  user@example.com ",
+                email: "  USER@Example.COM ",
                 password: "short",
             }),
         ).toMatchObject({
             success: true,
             data: { email: "user@example.com", password: "short" },
+        });
+
+        expect(
+            registrationSchema.safeParse({
+                email: "  USER@Example.COM ",
+                password: "StrongPass1",
+                confirmPassword: "StrongPass1",
+            }),
+        ).toMatchObject({
+            success: true,
+            data: { email: "user@example.com" },
         });
     });
 

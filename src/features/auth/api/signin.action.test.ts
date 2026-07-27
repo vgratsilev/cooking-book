@@ -29,7 +29,7 @@ describe("loginUser", () => {
     it("creates a session through the Credentials provider", async () => {
         signIn.mockResolvedValue("/");
 
-        await expect(loginUser({ email: "user@example.com", password: "short" })).resolves.toEqual({
+        await expect(loginUser({ email: "User@Example.com", password: "short" })).resolves.toEqual({
             status: "success",
         });
 

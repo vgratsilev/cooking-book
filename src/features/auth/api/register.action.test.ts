@@ -21,10 +21,11 @@ vi.mock("next-intl/server", () => ({
 import { registerUser } from "./register.action";
 
 const registrationValues = {
-    email: "user@example.com",
+    email: "User@Example.com",
     password: "StrongPass1",
     confirmPassword: "StrongPass1",
 };
+const normalizedEmail = "user@example.com";
 
 describe("registerUser", () => {
     beforeEach(() => {
@@ -34,23 +35,23 @@ describe("registerUser", () => {
     });
 
     it("creates a user after validating values on the server", async () => {
-        createUser.mockResolvedValue({ id: "user-id", email: registrationValues.email });
+        createUser.mockResolvedValue({ id: "user-id", email: normalizedEmail });
 
         await expect(registerUser(registrationValues)).resolves.toEqual({ status: "success" });
 
         expect(findUniqueUser).toHaveBeenCalledWith({
-            where: { email: registrationValues.email },
+            where: { email: normalizedEmail },
         });
 
         expect(createUser).toHaveBeenCalledWith({
             data: {
-                email: registrationValues.email,
+                email: normalizedEmail,
                 password: expect.stringMatching(/^[a-f0-9]{32}:[a-f0-9]{128}$/),
             },
         });
         expect(createUser.mock.calls[0][0].data.password).not.toBe(registrationValues.password);
         expect(signIn).toHaveBeenCalledWith("credentials", {
-            email: registrationValues.email,
+            email: normalizedEmail,
             password: registrationValues.password,
             redirect: false,
         });

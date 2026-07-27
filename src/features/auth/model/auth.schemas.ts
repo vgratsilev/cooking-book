@@ -16,6 +16,7 @@ const createEmailSchema = () =>
     z
         .string()
         .trim()
+        .toLowerCase()
         .superRefine((value, context) => {
             if (!value) {
                 context.addIssue({ code: "custom", message: "emailRequiredError" });

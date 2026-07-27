@@ -67,7 +67,7 @@ describe("Auth.js Credentials provider", () => {
 
         await expect(
             (await authorize())(
-                { email: "user@example.com", password: "StrongPass1" },
+                { email: "User@Example.com", password: "StrongPass1" },
                 new Request("http://localhost/"),
             ),
         ).resolves.toMatchObject({ id: "user-id", email: "user@example.com" });
