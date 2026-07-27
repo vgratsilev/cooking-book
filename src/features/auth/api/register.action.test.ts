@@ -57,6 +57,24 @@ describe("registerUser", () => {
         });
     });
 
+    it("keeps the account and asks for manual sign-in when automatic sign-in fails", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        createUser.mockResolvedValue({ id: "user-id", email: normalizedEmail });
+        signIn.mockRejectedValue(new Error("Auth.js unavailable"));
+
+        try {
+            await expect(registerUser(registrationValues)).resolves.toEqual({
+                formError: "Account created, but automatic sign-in failed. Please sign in manually.",
+                status: "error",
+            });
+        } finally {
+            consoleError.mockRestore();
+        }
+
+        expect(createUser).toHaveBeenCalledTimes(1);
+        expect(signIn).toHaveBeenCalledTimes(1);
+    });
+
     it("returns an email field error before creating a duplicate account", async () => {
         findUniqueUser.mockResolvedValue({ id: "existing-user-id" });
 

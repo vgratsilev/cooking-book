@@ -64,6 +64,7 @@
     "serverErrors": {
         "duplicateEmailError": "Аккаунт с такой почтой уже существует.",
         "registrationFailedError": "Не удалось создать аккаунт. Попробуйте ещё раз.",
+        "registrationSignInFailedError": "Аккаунт создан, но автоматический вход не удался. Войдите вручную.",
         "authNotConfiguredError": "Авторизация пока не настроена.",
         "invalidCredentialsError": "Неверная почта или пароль."
     }

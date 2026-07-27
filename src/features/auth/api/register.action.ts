@@ -50,12 +50,6 @@ export async function registerUser(
                 password: await hashPassword(validationResult.data.password),
             },
         });
-        await signIn("credentials", {
-            email: validationResult.data.email,
-            password: validationResult.data.password,
-            redirect: false,
-        });
-        return { status: "success" };
     } catch (error) {
         if (isPrismaUniqueConstraintError(error)) {
             return duplicateEmailError(serverErrorT("duplicateEmailError"));
@@ -66,4 +60,21 @@ export async function registerUser(
             formError: serverErrorT("registrationFailedError"),
         };
     }
+
+    try {
+        await signIn("credentials", {
+            email: validationResult.data.email,
+            password: validationResult.data.password,
+            redirect: false,
+        });
+    } catch (error) {
+        console.error("Automatic sign-in failed after registration", error);
+
+        return {
+            status: "error",
+            formError: serverErrorT("registrationSignInFailedError"),
+        };
+    }
+
+    return { status: "success" };
 }

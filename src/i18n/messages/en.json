@@ -64,6 +64,7 @@
     "serverErrors": {
         "duplicateEmailError": "An account with this email already exists.",
         "registrationFailedError": "Unable to create an account. Please try again.",
+        "registrationSignInFailedError": "Account created, but automatic sign-in failed. Please sign in manually.",
         "authNotConfiguredError": "Authentication is not configured yet.",
         "invalidCredentialsError": "Invalid email or password."
     }
