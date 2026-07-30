@@ -53,7 +53,7 @@ flowchart TD
 
 ### `RootLayout`
 
-Файл: [`src/app/layout.tsx`](../../src/app/layout.tsx)
+Файл: `src/app/layout.tsx`
 
 `RootLayout` — асинхронный Server Component. Это оправдано: ему нужно одновременно получить:
 
@@ -74,8 +74,8 @@ const [session, locale, messages, t] = await Promise.all([
 
 Файлы:
 
-- [`src/components/UI/Header/Header.tsx`](../../src/components/UI/Header/Header.tsx)
-- [`src/components/UI/Header/HeaderActions.tsx`](../../src/components/UI/Header/HeaderActions.tsx)
+- `src/components/UI/Header/Header.tsx`
+- `src/components/UI/Header/HeaderActions.tsx`
 
 `Header` хранит только UI-состояние:
 
@@ -101,8 +101,8 @@ session?.user?.name ?? session?.user?.email
 
 Файлы:
 
-- [`src/features/auth/ui/AuthModal.tsx`](../../src/features/auth/ui/AuthModal.tsx)
-- [`src/components/common/CustomModal.tsx`](../../src/components/common/CustomModal.tsx)
+- `src/features/auth/ui/AuthModal.tsx`
+- `src/components/common/CustomModal.tsx`
 
 `AuthModal` — controlled component. Открытость определяется выражением `mode !== null`. Внутри одновременно монтируется только одна форма:
 
@@ -115,7 +115,7 @@ session?.user?.name ?? session?.user?.email
 
 ### Общий hook `useAuthForm`
 
-Файл: [`src/features/auth/ui/useAuthForm.ts`](../../src/features/auth/ui/useAuthForm.ts)
+Файл: `src/features/auth/ui/useAuthForm.ts`
 
 Hook является auth-specific orchestration layer для двух небольших форм. Он хранит:
 
@@ -139,7 +139,7 @@ Hook является auth-specific orchestration layer для двух небо
 
 ### Правила входа
 
-Файл: [`src/features/auth/ui/SignInForm.tsx`](../../src/features/auth/ui/SignInForm.tsx)
+Файл: `src/features/auth/ui/SignInForm.tsx`
 
 Поля:
 
@@ -150,7 +150,7 @@ Hook является auth-specific orchestration layer для двух небо
 
 ### Правила регистрации
 
-Файл: [`src/features/auth/ui/RegistrationForm.tsx`](../../src/features/auth/ui/RegistrationForm.tsx)
+Файл: `src/features/auth/ui/RegistrationForm.tsx`
 
 Поля:
 
@@ -170,10 +170,10 @@ Hook является auth-specific orchestration layer для двух небо
 
 Файлы:
 
-- [`src/features/auth/model/auth.schemas.ts`](../../src/features/auth/model/auth.schemas.ts)
-- [`src/features/auth/model/auth.types.ts`](../../src/features/auth/model/auth.types.ts)
-- [`src/i18n/messages/en.json`](../../src/i18n/messages/en.json)
-- [`src/i18n/messages/ru.json`](../../src/i18n/messages/ru.json)
+- `src/features/auth/model/auth.schemas.ts`
+- `src/features/auth/model/auth.types.ts`
+- `src/i18n/messages/en.json`
+- `src/i18n/messages/ru.json`
 
 Zod-схемы создаются функциями `createSignInSchema()` и `createRegistrationSchema()`. Типы `SignInValues` и `RegistrationValues` выводятся из этих схем, поэтому типы client submit и server actions не дублируют структуру payload.
 
@@ -203,7 +203,7 @@ Email сначала trim-ится и приводится к lowercase. Оши�
 
 ### 3. Серверная валидация
 
-Файл: [`src/features/auth/api/register.action.ts`](../../src/features/auth/api/register.action.ts)
+Файл: `src/features/auth/api/register.action.ts`
 
 Server Action имеет top-level `"use server"`. Он заново получает локализованные переводчики `validation` и `serverErrors`, создаёт тот же registration schema и выполняет `safeParse(values)`. Во время parsing email trim-ится и приводится к lowercase, поэтому сервер не доверяет регистру или пробелам из client payload.
 
@@ -230,7 +230,7 @@ prisma.user.findUnique({ where: { email } })
 
 Если пользователя нет, пароль перед записью обрабатывается `hashPassword`.
 
-Файл: [`src/features/auth/lib/password.ts`](../../src/features/auth/lib/password.ts)
+Файл: `src/features/auth/lib/password.ts`
 
 Алгоритм:
 
@@ -282,7 +282,7 @@ await signIn("credentials", {
 
 ### 1. Server Action `loginUser`
 
-Файл: [`src/features/auth/api/signin.action.ts`](../../src/features/auth/api/signin.action.ts)
+Файл: `src/features/auth/api/signin.action.ts`
 
 Action:
 
@@ -295,7 +295,7 @@ Action:
 
 ### 2. Credentials provider в `auth.ts`
 
-Файл: [`src/features/auth/auth.ts`](../../src/features/auth/auth.ts)
+Файл: `src/features/auth/auth.ts`
 
 Auth.js получает конфигурацию через async factory. Это позволяет получить локализованные label-ы полей Credentials provider через `getTranslations("auth")`.
 
@@ -309,7 +309,7 @@ Auth.js получает конфигурацию через async factory. Эт
 6. при отсутствии пользователя или неправильном пароле возвращает `null`;
 7. при успехе возвращает только безопасное представление пользователя: `id`, `email`, `name`, `image`.
 
-Файл [user lookup helper](../../src/utils/user.ts) явно ограничивает `select` и не возвращает лишние поля из Prisma query наружу. Сам hash нужен только внутри server-side проверки.
+Файл `src/utils/user.ts` явно ограничивает `select` и не возвращает лишние поля из Prisma query наружу. Сам hash нужен только внутри server-side проверки.
 
 ### 3. JWT session
 
@@ -330,8 +330,8 @@ JWT callback добавляет `token.id = user.id` при первичном �
 
 Файлы:
 
-- [`src/features/auth/api/signOut.action.ts`](../../src/features/auth/api/signOut.action.ts)
-- [`src/components/UI/Header/HeaderActions.tsx`](../../src/components/UI/Header/HeaderActions.tsx)
+- `src/features/auth/api/signOut.action.ts`
+- `src/components/UI/Header/HeaderActions.tsx`
 
 `signOutUser` — Server Action, который вызывает:
 
@@ -385,7 +385,7 @@ await signOut({ redirect: false });
 
 ### Runtime-клиент
 
-Файл: [Prisma runtime client](../../src/utils/prisma.ts)
+Файл: `src/utils/prisma.ts`
 
 Runtime-клиент создаётся через Prisma 7 generated client и `withAccelerate()`:
 
@@ -475,9 +475,9 @@ Unit/component mocks не подтверждают:
 
 ## Важные замечания и потенциальные улучшения
 
-1. **Нормализация email (реализовано).** Общая email-схема в [`src/features/auth/model/auth.schemas.ts`](../../src/features/auth/model/auth.schemas.ts) делает `trim` и `toLowerCase`. Поскольку эту схему используют client/server registration, login action и Credentials `authorize`, один и тот же нормализованный email применяется перед lookup, create и sign-in. Тесты проверяют mixed-case email в обеих схемах, регистрации, входе и `authorize`. Старых mixed-case записей в удалённой БД нет, поэтому отдельный backfill для этого изменения не требуется.
+1. **Нормализация email (реализовано).** Общая email-схема в `src/features/auth/model/auth.schemas.ts` делает `trim` и `toLowerCase`. Поскольку эту схему используют client/server registration, login action и Credentials `authorize`, один и тот же нормализованный email применяется перед lookup, create и sign-in. Тесты проверяют mixed-case email в обеих схемах, регистрации, входе и `authorize`. Старых mixed-case записей в удалённой БД нет, поэтому отдельный backfill для этого изменения не требуется.
 
-2. **Ошибка между create и sign-in (обработано).** Создание пользователя и автоматический вход обрабатываются раздельно в [`registerUser`](../../src/features/auth/api/register.action.ts). Если пользователь уже создан, но `signIn` завершается ошибкой, Server Action возвращает отдельное сообщение: аккаунт сохранён, пользователю нужно выполнить обычный вход вручную. Удаление пользователя и попытка сделать создание аккаунта и cookie Auth.js одной Prisma-транзакцией не используются: cookie не входит в транзакцию БД. Сценарий покрыт тестом на сохранение аккаунта при ошибке автоматического входа.
+2. **Ошибка между create и sign-in (обработано).** Создание пользователя и автоматический вход обрабатываются раздельно в `src/features/auth/api/register.action.ts` (`registerUser`). Если пользователь уже создан, но `signIn` завершается ошибкой, Server Action возвращает отдельное сообщение: аккаунт сохранён, пользователю нужно выполнить обычный вход вручную. Удаление пользователя и попытка сделать создание аккаунта и cookie Auth.js одной Prisma-транзакцией не используются: cookie не входит в транзакцию БД. Сценарий покрыт тестом на сохранение аккаунта при ошибке автоматического входа.
 
 3. **Обязательный `User.password` и будущие OAuth-провайдеры.** При подключении OAuth Prisma Adapter сможет пытаться создать пользователя без credentials password, а текущая схема требует `password`. До добавления OAuth нужно изменить модель/поток, например сделать password nullable или разделить credentials-данные и базового пользователя.
 
