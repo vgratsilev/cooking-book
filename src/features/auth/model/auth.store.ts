@@ -32,10 +32,7 @@ const getAuthIdentity = (session: Session | null) =>
         ? { kind: "guest" as const }
         : { kind: "user" as const, key: session.user?.id ?? session.user?.email ?? null };
 
-const hasSameAuthIdentity = (
-    currentSession: Session | null,
-    serverSession: Session | null,
-) => {
+const hasSameAuthIdentity = (currentSession: Session | null, serverSession: Session | null) => {
     const currentIdentity = getAuthIdentity(currentSession);
     const serverIdentity = getAuthIdentity(serverSession);
 

@@ -1,10 +1,6 @@
 import type { Session } from "next-auth";
 import { describe, expect, it } from "vitest";
-import {
-    createAuthStore,
-    selectIsAuthenticated,
-    type AuthStoreState,
-} from "./auth.store";
+import { createAuthStore, selectIsAuthenticated, type AuthStoreState } from "./auth.store";
 
 const session: Session = {
     expires: "2099-01-01T00:00:00.000Z",

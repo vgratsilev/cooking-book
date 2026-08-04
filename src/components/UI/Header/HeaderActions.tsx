@@ -15,19 +15,14 @@ interface HeaderActionsProps {
     orientation: "desktop" | "mobile";
 }
 
-export const HeaderActions = ({
-    onOpenAuth,
-    onAuthChange,
-    orientation,
-}: HeaderActionsProps) => {
+export const HeaderActions = ({ onOpenAuth, onAuthChange, orientation }: HeaderActionsProps) => {
     const t = useTranslations("header");
     const isMobile = orientation === "mobile";
     const session = useAuthStore((state) => state.session);
     const acquireSignOutLock = useAuthStore((state) => state.acquireSignOutLock);
     const cancelTransition = useAuthStore((state) => state.cancelTransition);
     const isSigningOut = useAuthStore(
-        (state) =>
-            state.transition.phase !== "idle" && state.transition.operation === "signOut",
+        (state) => state.transition.phase !== "idle" && state.transition.operation === "signOut",
     );
     const userLabel = session?.user?.name ?? session?.user?.email;
 

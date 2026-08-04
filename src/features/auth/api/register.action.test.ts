@@ -64,7 +64,8 @@ describe("registerUser", () => {
 
         try {
             await expect(registerUser(registrationValues)).resolves.toEqual({
-                formError: "Account created, but automatic sign-in failed. Please sign in manually.",
+                formError:
+                    "Account created, but automatic sign-in failed. Please sign in manually.",
                 status: "error",
             });
         } finally {

@@ -33,10 +33,8 @@ const AuthTransitionProbe = () => {
     );
 };
 
-const renderProvider = (
-    initialSession: Session | null,
-    children: ReactNode = <AuthStateProbe />,
-) => render(<AuthStoreProvider initialSession={initialSession}>{children}</AuthStoreProvider>);
+const renderProvider = (initialSession: Session | null, children: ReactNode = <AuthStateProbe />) =>
+    render(<AuthStoreProvider initialSession={initialSession}>{children}</AuthStoreProvider>);
 
 describe("AuthStoreProvider", () => {
     it("provides an initialized store to client descendants", () => {
@@ -58,9 +56,7 @@ describe("AuthStoreProvider", () => {
         );
 
         expect(screen.getByTestId("guest-state")).toHaveTextContent("unauthenticated:false");
-        expect(screen.getByTestId("authenticated-state")).toHaveTextContent(
-            "authenticated:true",
-        );
+        expect(screen.getByTestId("authenticated-state")).toHaveTextContent("authenticated:true");
     });
 
     it("reconciles a changed server snapshot without remounting the provider", async () => {
@@ -84,9 +80,7 @@ describe("AuthStoreProvider", () => {
             </AuthStoreProvider>,
         );
 
-        expect(await screen.findByTestId("auth-state")).toHaveTextContent(
-            "unauthenticated:false",
-        );
+        expect(await screen.findByTestId("auth-state")).toHaveTextContent("unauthenticated:false");
     });
 
     it("keeps a transition when refresh returns the same auth identity", async () => {

@@ -21,9 +21,7 @@ export const Header = () => {
     const router = useRouter();
     const startRefreshing = useAuthStore((state) => state.startRefreshing);
     const completeRefreshing = useAuthStore((state) => state.completeRefreshing);
-    const isAuthTransitionActive = useAuthStore(
-        (state) => state.transition.phase !== "idle",
-    );
+    const isAuthTransitionActive = useAuthStore((state) => state.transition.phase !== "idle");
     const [isRouterRefreshing, startRouterTransition] = useTransition();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [authMode, setAuthMode] = useState<AuthMode | null>(null);

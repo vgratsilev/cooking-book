@@ -1,6 +1,6 @@
 # Авторизация и регистрация в `cooking-book`
 
-> Снимок поведения проекта на 2026-07-28. Документ составлен по текущему коду и результатам проверок, а не по старому плану рефакторинга.
+> Снимок поведения проекта на 2026-08-04. Документ составлен по текущему коду и результатам проверок, а не по старому плану рефакторинга.
 
 ## Краткий вывод
 
@@ -13,8 +13,10 @@
 - вход использует Credentials provider Auth.js, который ищет пользователя по email и проверяет пароль;
 - общая email-схема обрезает пробелы и приводит email к lowercase до lookup/create/sign-in;
 - сессия хранится в JWT, а не в таблице `Session`;
-- серверный `RootLayout` вызывает `auth()` и передаёт сессию в клиентский `Header`;
-- после входа, регистрации или выхода клиент вызывает `router.refresh()`, чтобы заново получить серверное состояние.
+- серверный `RootLayout` вызывает `auth()` и передаёт сессию в `Providers`;
+- feature-scoped `AuthStore` получает начальный server snapshot через `AuthStoreProvider`, но не заменяет JWT-cookie и `auth()`;
+- после успешного входа, регистрации или выхода client coordinator запускает `router.refresh()`, после чего provider применяет новый server snapshot;
+- desktop- и mobile-экземпляры `HeaderActions` используют один атомарный sign-out lock и общий pending-state.
 
 При корректно настроенных секретах и доступной базе такой сценарий должен работать end-to-end. Автоматические unit/component-тесты проходят, но текущая проверка подключения к PostgreSQL не завершилась успешно: `prisma migrate status` дошёл до `db.prisma.io:5432`, после чего получил ошибку schema engine.
 
@@ -44,8 +46,12 @@ flowchart TD
 
     RootLayout[RootLayout server component] --> Auth[auth()]
     Auth --> JWTCookie
-    RootLayout --> Header
-    Header --> Refresh[router.refresh()]
+    RootLayout --> Providers[Providers initialSession]
+    Providers --> AuthStoreProvider[AuthStoreProvider]
+    AuthStoreProvider --> Header
+    Header --> AuthCoordinator[auth transition coordinator]
+    AuthCoordinator --> AuthStore[AuthStore]
+    AuthCoordinator --> Refresh[React startTransition + router.refresh()]
     Refresh --> RootLayout
 ```
 
@@ -66,9 +72,9 @@ const [session, locale, messages, t] = await Promise.all([
 ]);
 ```
 
-Полученная `session` передаётся в `<Header session={session} />`. Поэтому Header не читает auth-состояние через `useSession`, а получает его из серверного дерева. `RootLayout` становится динамическим server-rendered маршрутом, что ожидаемо для cookie-based session.
+Полученная `session` передаётся в `<Providers initialSession={session}>`. Поэтому `RootLayout` остаётся источником начального server snapshot, а `Header` не получает session prop и читает подтверждённое состояние из `AuthStoreProvider`. `RootLayout` становится динамическим server-rendered маршрутом, что ожидаемо для cookie-based session.
 
-`Providers` содержит только клиентские провайдеры темы и локализации. `SessionProvider` не используется — для выбранной схемы JWT + server `auth()` он не нужен.
+`Providers` содержит клиентские провайдеры темы, локализации и `AuthStoreProvider`. `SessionProvider` не используется — для выбранной схемы JWT + server `auth()` он не нужен.
 
 ### `Header` и `HeaderActions`
 
@@ -83,9 +89,9 @@ const [session, locale, messages, t] = await Promise.all([
 - `authMode` — `null`, `signIn` или `registration`;
 - `pathname` — текущий путь для навигации.
 
-При открытии auth-модалки мобильное меню закрывается. Desktop- и mobile-экземпляры `HeaderActions` используют один и тот же `session` и одни и те же callback-и.
+При открытии auth-модалки мобильное меню закрывается. Desktop- и mobile-экземпляры `HeaderActions` читают один и тот же snapshot и transition из `AuthStoreProvider`.
 
-Если сессии нет, отображаются кнопки «Войти» и «Зарегистрироваться». Если сессия есть, отображаются:
+`HeaderActions` получает `session` через selector-based `useAuthStore`. Если сессии нет, отображаются кнопки «Войти» и «Зарегистрироваться». Если сессия есть, отображаются:
 
 ```ts
 session?.user?.name ?? session?.user?.email
@@ -93,7 +99,29 @@ session?.user?.name ?? session?.user?.email
 
 и кнопка выхода.
 
-После успешного входа или регистрации `Header` закрывает модалку и вызывает `router.refresh()`. После выхода `HeaderActions` также вызывает `router.refresh()`. Refresh повторно выполняет серверный `RootLayout`, который читает уже изменившуюся cookie и передаёт актуальную сессию.
+После успешного входа или регистрации `AuthModal` сообщает режим в `Header`; coordinator закрывает модалку, переводит store в `refreshing` и вызывает `router.refresh()` внутри React transition. При выходе `HeaderActions` сначала атомарно захватывает общий lock, а после успешного Server Action использует тот же coordinator. Refresh повторно выполняет серверный `RootLayout`, а `AuthStoreProvider` применяет переданный server snapshot.
+
+### `AuthStore` и server reconciliation
+
+Файлы:
+
+- `src/features/auth/model/auth.store.ts`
+- `src/features/auth/model/AuthStoreProvider.tsx`
+- `src/app/providers.tsx`
+
+`AuthStore` принадлежит auth-фиче и создаётся factory-функцией `createAuthStore(initialSession)` на базе `zustand/vanilla`. Module-global store не используется: `AuthStoreProvider` создаёт стабильный экземпляр для своего app tree, поэтому состояние разных provider trees не смешивается.
+
+В state хранятся:
+
+- последний подтверждённый `session` snapshot;
+- согласованный с ним `status`: `authenticated` или `unauthenticated`;
+- отдельный `transition`: `idle`, `mutation + signOut` или `refreshing + AuthOperation`.
+
+`isAuthenticated` не дублируется в state и получается selector-ом. Сессия не создаётся из email, результата Server Action или локального состояния формы. После `router.refresh()` provider получает новый `initialSession` от server `RootLayout` и вызывает reconciliation.
+
+`reconcileSession` всегда принимает server snapshot. Если меняется auth identity — например, `guest → user` после входа или `user → guest` после выхода — transition завершается и новый snapshot становится подтверждённым. Если identity остаётся той же, store принимает обновлённые session metadata, но не сбрасывает выполняемый transition. Поэтому изменение `expires`, `name` или `image` не маскируется под смену пользователя.
+
+`router.refresh()` не является awaitable. `Header` запускает его внутри React `startTransition`; если server snapshot изменился, provider завершает reconciliation, а если сервер вернул прежний identity — coordinator завершает оставшийся `refreshing` transition после окончания React transition. Во время reconciliation последний подтверждённый snapshot остаётся видимым.
 
 ## Клиентская часть форм
 
@@ -112,6 +140,8 @@ session?.user?.name ?? session?.user?.email
 У форм разные React `key`, поэтому переход между режимами размонтирует старую форму и сбрасывает её значения, ошибки и pending-состояние. Overlay при этом остаётся открытым.
 
 `CustomModal` отвечает только за HeroUI presentation: backdrop, container, dialog, close trigger и responsive full-screen режим на мобильном. Он не знает о Prisma, Auth.js и правилах валидации.
+
+После успешного submit `AuthModal` вызывает success callback с завершившимся режимом — `signIn` или `registration`. `Header` использует этот режим для запуска соответствующего `AuthOperation`. Ошибочный результат Server Action не вызывает callback: модалка остаётся открытой, а AuthStore и server snapshot не меняются.
 
 ### Общий hook `useAuthForm`
 
@@ -272,11 +302,11 @@ await signIn("credentials", {
 
 Здесь используется исходный открытый пароль только для передачи в Auth.js после записи хэша; в Prisma он не передаётся. Auth.js снова проходит через Credentials provider, проверяет сохранённый хэш и формирует JWT-сессию.
 
-После успешного action клиент закрывает модалку и делает `router.refresh()`. Серверный layout видит новую сессию, а Header начинает показывать email пользователя.
+После успешного action форма сообщает `registration` в `AuthModal`, модалка закрывается, а `Header` переводит AuthStore в `refreshing` и вызывает `router.refresh()` внутри React transition. Серверный layout видит новую сессию, `AuthStoreProvider` применяет её server snapshot, и только после этого Header начинает показывать email пользователя.
 
 ### Ошибка после создания пользователя
 
-Важно: создание пользователя и автоматический sign-in не объединены в транзакцию. Если `user.create` успешно завершился, а последующий `signIn` упал, пользователь уже существует, но action вернёт общий `registrationFailedError`. Повторная попытка регистрации может после этого показать ошибку дубликата email. Это реальный edge case текущей реализации.
+Важно: создание пользователя и автоматический sign-in не объединены в транзакцию. Если `user.create` успешно завершился, а последующий `signIn` упал, пользователь уже существует, но action возвращает `registrationSignInFailedError`: аккаунт сохранён, нужно выполнить обычный вход вручную. Повторная попытка регистрации может после этого показать ошибку дубликата email. AuthModal оставляет форму открытой, поэтому этот результат не запускает AuthStore transition и `router.refresh()`.
 
 ## Вход: пошаговый поток
 
@@ -292,6 +322,8 @@ Action:
 4. при валидном payload вызывает `signIn("credentials", { redirect: false })`; email передаётся уже в нормализованном lowercase-виде;
 5. преобразует ожидаемые `AuthError` типов `CredentialsSignin` и `CallbackRouteError` в локализованный `formError`;
 6. неожиданные ошибки пробрасывает выше, чтобы UI показал общий fallback `genericFormError`.
+
+При успешном результате `Header` получает server-authoritative reconciliation через `router.refresh()`. Email или результат `loginUser` не используются для создания локальной Session.
 
 ### 2. Credentials provider в `auth.ts`
 
@@ -341,13 +373,14 @@ await signOut({ redirect: false });
 
 `HeaderActions`:
 
-1. не запускает повторный выход, если `isSigningOut === true`;
-2. включает pending/disabled состояние;
-3. вызывает Server Action;
-4. после завершения вызывает `onAuthChange` → `router.refresh()`;
-5. после обновления получает guest-state из `auth()` в `RootLayout`.
+1. атомарно вызывает `acquireSignOutLock` в AuthStore до Server Action;
+2. оба desktop/mobile экземпляра получают один и тот же pending-state из store;
+3. вызывает `signOutUser`;
+4. после успеха передаёт операцию `signOut` общему coordinator в `Header`, который переводит transition из `mutation` в `refreshing` и вызывает `router.refresh()`;
+5. после обновления получает guest snapshot из `auth()` в `RootLayout`, а provider применяет его к AuthStore;
+6. при ошибке вызывает `cancelTransition`, сохраняет текущую Session, не вызывает refresh и разрешает повторную попытку.
 
-На desktop и mobile рендерятся два экземпляра `HeaderActions`, поэтому у каждого свой локальный `isSigningOut`. Это не даёт повторно нажать одну и ту же кнопку, но теоретически не является глобальным lock между двумя одновременно видимыми экземплярами.
+Таким образом, desktop и mobile используют один shared lock, а не два локальных boolean. Новая sign-out error UI не добавлялась: ошибка остаётся без ложного guest/authenticated состояния и без refresh.
 
 ## Разбор `auth.ts`
 
@@ -420,7 +453,9 @@ Runtime-клиент создаётся через Prisma 7 generated client и 
 
 | Слой | Ответственность |
 | --- | --- |
-| `Header` / `AuthModal` | открытие, закрытие и переключение форм |
+| `RootLayout` / `Providers` | чтение server `auth()` и передача начального Session в AuthStoreProvider |
+| `AuthStore` / `AuthStoreProvider` | подтверждённый session snapshot, status, auth transitions, shared sign-out lock и reconciliation |
+| `Header` / `AuthModal` | открытие, закрытие и переключение форм; auth transition coordinator |
 | `SignInForm` / `RegistrationForm` | поля, accessibility, отображение ошибок |
 | `useAuthForm` | client validation, pending, focus, submit contract |
 | `auth.schemas.ts` | единые правила payload и типы ошибок |
@@ -429,7 +464,7 @@ Runtime-клиент создаётся через Prisma 7 generated client и 
 | `src/utils/user.ts` | минимальный Prisma user lookup |
 | `password.ts` | hash/verify password |
 | `src/utils/prisma.ts` | Prisma client и Accelerate connection |
-| `RootLayout` | чтение текущей сессии и передача её в Header |
+| `HeaderActions` | session из store, sign-out action и shared lock для desktop/mobile |
 
 Prisma и Node crypto не импортируются в client components. Client components знают только submit contract Server Actions. Это соответствует server-only границе.
 
@@ -445,19 +480,23 @@ Prisma и Node crypto не импортируются в client components. Clie
 - переключение auth-режимов и сброс старой формы;
 - focus первого невалидного поля;
 - pending и блокировку повторного submit;
-- Header для guest/authenticated state;
+- AuthStore и provider для guest/authenticated initialization;
+- server snapshot reconciliation `null → Session`, `Session → null` и обновление metadata без смены identity;
+- Header для guest/authenticated state и переходов sign-in/registration;
 - email fallback вместо отсутствующего user name;
-- refresh после выхода;
-- блокировку повторного sign-out;
+- refresh после входа, регистрации и выхода;
+- атомарный shared sign-out lock для desktop/mobile;
+- освобождение lock при ошибке sign-out без refresh;
 - desktop/mobile открытие модалки и переключение локали.
 
 Проверка в текущем checkout:
 
-- `npm test -- --run`: 10 test files, 37 tests passed;
+- `npm test -- --run`: 12 test files, 54 tests passed;
 - `npx tsc --noEmit`: passed;
-- `npm run lint`: passed;
-- `npx prisma validate`: passed;
-- `npm run build`: passed после запуска вне sandbox; первая попытка внутри sandbox упала на ограничении Turbopack `Operation not permitted`.
+- `npm run lint`: проверяется отдельным verification gate после U5;
+- `npm run format:check`: проверяется отдельным verification gate после U5;
+- `git diff --check`: passed для реализации U1–U4;
+- production build и реальный browser/staging flow не являются доказанными unit/component-тестами.
 
 ## Что тесты не доказывают
 
@@ -487,10 +526,10 @@ Unit/component mocks не подтверждают:
 
 6. **Защищённых маршрутов пока нет.** `auth()` используется для отображения Header, но страницы `/`, `/ingredients` и `/about` не проверяют наличие сессии. Сейчас авторизация меняет UI, но не ограничивает доступ к отдельным server operations или страницам.
 
-7. **Дублированные mobile/desktop actions.** Блокировка выхода локальна для конкретного `HeaderActions`. При необходимости единого глобального pending-state его следует поднять в `Header`.
+7. **Общий sign-out lock (реализовано).** `HeaderActions` больше не хранит локальный `isSigningOut`. Desktop- и mobile-экземпляры используют один атомарный `acquireSignOutLock` и общий pending-state в AuthStore. Ошибка sign-out освобождает lock без refresh; успешный выход проходит через общий `mutation → refreshing` coordinator.
 
 ## Итоговая оценка
 
-Архитектура текущего credentials-flow в целом собрана корректно: client/server validation разделены, пароль не хранится открытым текстом, регистрация защищена от обычного duplicate и гонки `P2002`, Auth.js проверяет пароль через отдельный server-only слой, а session state проходит через server `RootLayout` без `SessionProvider`.
+Архитектура текущего credentials-flow в целом собрана корректно: client/server validation разделены, пароль не хранится открытым текстом, регистрация защищена от обычного duplicate и гонки `P2002`, Auth.js проверяет пароль через отдельный server-only слой, а session state проходит через `RootLayout → Providers → AuthStoreProvider` без `SessionProvider` и без оптимистического client-auth.
 
-Главное ограничение подтверждения — не кодовая ошибка, а отсутствие успешной проверки удалённой schema engine в текущей среде. Главные технические follow-up риски — неатомарность `create → signIn`, обязательный password для будущего OAuth и то, что `handlers` экспортированы, но пока намеренно не используются.
+Главное ограничение подтверждения auth-flow — отсутствие отдельной browser/staging E2E-проверки настоящей JWT-cookie цепочки. Главные технические follow-up риски — неатомарность `create → signIn`, обязательный password для будущего OAuth и то, что `handlers` экспортированы, но пока намеренно не используются.
