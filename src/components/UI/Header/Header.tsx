@@ -4,9 +4,10 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { Session } from "next-auth";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { registerUser } from "@/features/auth/api/register.action";
 import { loginUser } from "@/features/auth/api/signin.action";
+import { useAuthStore } from "@/features/auth/model/AuthStoreProvider";
 import type { AuthMode } from "@/features/auth/model/auth.types";
 import { AuthModal } from "@/features/auth/ui/AuthModal";
 import { HeaderActions } from "./HeaderActions";
@@ -18,10 +19,27 @@ const Logo = ({ title }: { title: string }) => {
 export const Header = ({ session = null }: { session?: Session | null }) => {
     const t = useTranslations("header");
     const router = useRouter();
+    const startRefreshing = useAuthStore((state) => state.startRefreshing);
+    const completeRefreshing = useAuthStore((state) => state.completeRefreshing);
+    const isAuthTransitionActive = useAuthStore(
+        (state) => state.transition.phase !== "idle",
+    );
+    const [isRouterRefreshing, startRouterTransition] = useTransition();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [authMode, setAuthMode] = useState<AuthMode | null>(null);
     const pathname = usePathname();
+
+    useEffect(() => {
+        if (!isRouterRefreshing) {
+            completeRefreshing();
+        }
+    }, [completeRefreshing, isRouterRefreshing]);
+
     const openAuthModal = (mode: AuthMode) => {
+        if (isAuthTransitionActive) {
+            return;
+        }
+
         setIsMenuOpen(false);
         setAuthMode(mode);
     };
@@ -32,9 +50,18 @@ export const Header = ({ session = null }: { session?: Session | null }) => {
         }
     };
 
-    const handleAuthChange = () => {
+    const handleAuthChange = (mode?: AuthMode) => {
+        if (mode === undefined) {
+            router.refresh();
+            return;
+        }
+
+        if (!startRefreshing(mode)) {
+            return;
+        }
+
         setAuthMode(null);
-        router.refresh();
+        startRouterTransition(() => router.refresh());
     };
 
     return (

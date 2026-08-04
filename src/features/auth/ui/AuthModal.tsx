@@ -12,7 +12,7 @@ interface AuthModalProps {
     onModeChange: (mode: AuthMode) => void;
     onOpenChange: (isOpen: boolean) => void;
     onRegistrationSubmit: RegistrationSubmitHandler;
-    onSuccess: () => void;
+    onSuccess: (mode: AuthMode) => void;
 }
 
 export const AuthModal = ({
@@ -35,7 +35,7 @@ export const AuthModal = ({
                     onSubmit={onRegistrationSubmit}
                     onSuccess={() => {
                         close();
-                        onSuccess();
+                        onSuccess("registration");
                     }}
                     onSwitchMode={() => onModeChange("signIn")}
                 />
@@ -50,7 +50,7 @@ export const AuthModal = ({
                     onSubmit={onSignInSubmit}
                     onSuccess={() => {
                         close();
-                        onSuccess();
+                        onSuccess("signIn");
                     }}
                     onSwitchMode={() => onModeChange("registration")}
                 />
