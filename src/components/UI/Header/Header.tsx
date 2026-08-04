@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import type { Session } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { registerUser } from "@/features/auth/api/register.action";
 import { loginUser } from "@/features/auth/api/signin.action";
 import { useAuthStore } from "@/features/auth/model/AuthStoreProvider";
+import type { AuthOperation } from "@/features/auth/model/auth.store";
 import type { AuthMode } from "@/features/auth/model/auth.types";
 import { AuthModal } from "@/features/auth/ui/AuthModal";
 import { HeaderActions } from "./HeaderActions";
@@ -16,7 +16,7 @@ const Logo = ({ title }: { title: string }) => {
     return <Image src="/cooking-book-logo.png" width={50} height={50} alt={title} priority />;
 };
 
-export const Header = ({ session = null }: { session?: Session | null }) => {
+export const Header = () => {
     const t = useTranslations("header");
     const router = useRouter();
     const startRefreshing = useAuthStore((state) => state.startRefreshing);
@@ -50,18 +50,14 @@ export const Header = ({ session = null }: { session?: Session | null }) => {
         }
     };
 
-    const handleAuthChange = (mode?: AuthMode) => {
-        if (mode === undefined) {
-            router.refresh();
-            return;
-        }
-
-        if (!startRefreshing(mode)) {
-            return;
+    const handleAuthChange = (operation: AuthOperation) => {
+        if (!startRefreshing(operation)) {
+            return false;
         }
 
         setAuthMode(null);
         startRouterTransition(() => router.refresh());
+        return true;
     };
 
     return (
@@ -114,7 +110,6 @@ export const Header = ({ session = null }: { session?: Session | null }) => {
                         onOpenAuth={openAuthModal}
                         onAuthChange={handleAuthChange}
                         orientation="desktop"
-                        session={session}
                     />
                 </div>
             </header>
@@ -127,7 +122,6 @@ export const Header = ({ session = null }: { session?: Session | null }) => {
                             onOpenAuth={openAuthModal}
                             onAuthChange={handleAuthChange}
                             orientation="mobile"
-                            session={session}
                         />
                     </div>
                 </div>

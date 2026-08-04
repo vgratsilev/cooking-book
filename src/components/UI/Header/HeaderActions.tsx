@@ -1,44 +1,48 @@
 "use client";
 
-import type { Session } from "next-auth";
-import { useState } from "react";
 import { Button } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { signOutUser } from "@/features/auth/api/signOut.action";
+import { useAuthStore } from "@/features/auth/model/AuthStoreProvider";
 import type { AuthMode } from "@/features/auth/model/auth.types";
+import type { AuthOperation } from "@/features/auth/model/auth.store";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 interface HeaderActionsProps {
     onOpenAuth: (mode: AuthMode) => void;
-    onAuthChange: () => void;
+    onAuthChange: (operation: AuthOperation) => boolean;
     orientation: "desktop" | "mobile";
-    session?: Session | null;
 }
 
 export const HeaderActions = ({
     onOpenAuth,
     onAuthChange,
     orientation,
-    session,
 }: HeaderActionsProps) => {
     const t = useTranslations("header");
     const isMobile = orientation === "mobile";
-    const [isSigningOut, setIsSigningOut] = useState(false);
+    const session = useAuthStore((state) => state.session);
+    const acquireSignOutLock = useAuthStore((state) => state.acquireSignOutLock);
+    const cancelTransition = useAuthStore((state) => state.cancelTransition);
+    const isSigningOut = useAuthStore(
+        (state) =>
+            state.transition.phase !== "idle" && state.transition.operation === "signOut",
+    );
     const userLabel = session?.user?.name ?? session?.user?.email;
 
     const handleSignOut = async () => {
-        if (isSigningOut) {
+        if (!acquireSignOutLock()) {
             return;
         }
 
-        setIsSigningOut(true);
-
         try {
             await signOutUser();
-            onAuthChange();
-        } finally {
-            setIsSigningOut(false);
+            if (!onAuthChange("signOut")) {
+                cancelTransition();
+            }
+        } catch {
+            cancelTransition();
         }
     };
 

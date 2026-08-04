@@ -75,6 +75,7 @@ describe("createAuthStore", () => {
         expect(store.getState().transition).toEqual({ phase: "idle" });
         expect(store.getState().session).toBeNull();
 
+        store.getState().reconcileSession(session);
         expect(store.getState().acquireSignOutLock()).toBe(true);
         expect(store.getState().startRefreshing("signOut")).toBe(true);
         expect(store.getState().transition).toEqual({

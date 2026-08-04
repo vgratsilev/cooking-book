@@ -31,7 +31,7 @@ vi.mock("@/features/auth/api/signOut.action", () => ({
 const renderHeader = (session: Session | null = null) =>
     renderWithIntl(
         <AuthStoreProvider initialSession={session}>
-            <Header session={session} />
+            <Header />
         </AuthStoreProvider>,
     );
 
@@ -162,7 +162,7 @@ describe("Header", () => {
         expect(refresh).toHaveBeenCalled();
     });
 
-    it("blocks repeated sign-out while the server action is pending", async () => {
+    it("uses one shared sign-out lock and pending state for desktop and mobile", async () => {
         const user = userEvent.setup();
         let resolveSignOut: (() => void) | undefined;
         vi.mocked(signOutUser).mockImplementation(
@@ -173,13 +173,55 @@ describe("Header", () => {
             user: { email: "user@example.com", name: null },
         });
 
-        const signOutButton = screen.getAllByRole("button", { name: "Sign out" })[0];
-        await user.click(signOutButton);
-        await user.click(signOutButton);
+        await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+        const signOutButtons = screen.getAllByRole("button", { name: "Sign out" });
+        await user.click(signOutButtons[0]);
+        await user.click(signOutButtons[1]);
 
         expect(signOutUser).toHaveBeenCalledTimes(1);
-        expect(signOutButton).toBeDisabled();
+        expect(signOutButtons[0]).toBeDisabled();
+        expect(signOutButtons[1]).toBeDisabled();
         resolveSignOut?.();
+    });
+
+    it("releases the sign-out lock and skips refresh when the action fails", async () => {
+        const user = userEvent.setup();
+        vi.mocked(signOutUser).mockRejectedValueOnce(new Error("sign-out failed"));
+        renderHeader({
+            expires: "2099-01-01T00:00:00.000Z",
+            user: { email: "user@example.com", name: null },
+        });
+
+        const signOutButton = screen.getAllByRole("button", { name: "Sign out" })[0];
+        await user.click(signOutButton);
+
+        await waitFor(() => expect(signOutUser).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(signOutButton).not.toBeDisabled());
+        expect(refresh).not.toHaveBeenCalled();
+
+        await user.click(signOutButton);
+        expect(signOutUser).toHaveBeenCalledTimes(2);
+    });
+
+    it("shows the guest UI after the refreshed server snapshot confirms sign-out", async () => {
+        const user = userEvent.setup();
+        const session = {
+            expires: "2099-01-01T00:00:00.000Z",
+            user: { email: "user@example.com", name: null },
+        } satisfies Session;
+        const view = renderHeader(session);
+
+        await user.click(screen.getAllByRole("button", { name: "Sign out" })[0]);
+        await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+
+        view.rerender(
+            <AuthStoreProvider initialSession={null}>
+                <Header />
+            </AuthStoreProvider>,
+        );
+
+        expect(await screen.findAllByRole("button", { name: "Sign in" })).toHaveLength(1);
+        expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
     });
 
     it("switches between English and Russian labels from the language dropdown", async () => {

@@ -42,7 +42,7 @@ export default async function RootLayout({
         >
             <body className="bg-background text-foreground flex min-h-screen flex-col">
                 <Providers initialSession={session} locale={locale} messages={messages}>
-                    <Header session={session} />
+                    <Header />
                     <main className="flex min-h-0 w-full flex-1 flex-col items-center justify-start">
                         {children}
                     </main>

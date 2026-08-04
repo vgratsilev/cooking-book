@@ -55,7 +55,7 @@ export const createAuthStore = (initialSession: Session | null): AuthStore =>
             let acquired = false;
 
             set((state) => {
-                if (state.transition.phase !== "idle") {
+                if (state.session === null || state.transition.phase !== "idle") {
                     return state;
                 }
 
