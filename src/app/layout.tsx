@@ -41,7 +41,7 @@ export default async function RootLayout({
             suppressHydrationWarning
         >
             <body className="bg-background text-foreground flex min-h-screen flex-col">
-                <Providers locale={locale} messages={messages}>
+                <Providers initialSession={session} locale={locale} messages={messages}>
                     <Header session={session} />
                     <main className="flex min-h-0 w-full flex-1 flex-col items-center justify-start">
                         {children}
